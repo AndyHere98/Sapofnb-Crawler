@@ -1,6 +1,6 @@
 package com.andy.sapofnbcrawler.controller;
 
-import com.andy.sapofnbcrawler.service.SapoService;
+import com.andy.sapofnbcrawler.service.MenuService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("${sapo-api.version}")
 @RequiredArgsConstructor
-public class SapoController {
+public class SapoMenuController {
     
-    private final SapoService sapoService;
+    private final MenuService sapoService;
     
     @GetMapping("/get-menu")
     public ResponseEntity<?> getMenu() {
