@@ -24,6 +24,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -69,9 +71,8 @@ public class OrderService {
             return null;
         
         OrderRequest  orderRequest  = (OrderRequest) SapoUtils.convertJsonToObject(json, OrderRequest.class);
-        OrderResponse orderResponse = mappingOrderResponse(orderRequest);
         
-        return orderResponse;
+        return mappingOrderResponse(orderRequest);
     }
     
     private OrderResponse mappingOrderResponse(OrderRequest orderRequest) {
@@ -99,6 +100,9 @@ public class OrderService {
     @Transactional(value = TxType.REQUIRES_NEW, rollbackOn = Exception.class)
     public Object placeOrder(MemberOrderRequest request) {
         Order order = mappingToOrder(request);
+        order.setId(UUID.randomUUID().toString());
+        order.setCreatedDate(new Date());
+        order.setOrderDate(new Date());
         List<OrderDetail> orderDetails = request.getDishes().stream().map(this::mappingToOrderDetail).collect(
                 Collectors.toList());
         
@@ -106,6 +110,8 @@ public class OrderService {
         List<String> todayDishes = menu.getDishes().stream().map(MenuResponse.DishResponse::getName).toList();
         
         try {
+            if (orderDetails.isEmpty()) throw new RuntimeException("Danh sách món ăn đang trống");
+            
             orderDetails.forEach(orderDetail -> {
                 orderDetail.setOrder(order);
                 if (!todayDishes.contains(orderDetail.getDishName())) throw new RuntimeException(
@@ -155,9 +161,6 @@ public class OrderService {
     private Order mappingToOrder(MemberOrderRequest request) {
         Order order = new Order();
         BeanUtils.copyProperties(request, order);
-        order.setId(UUID.randomUUID().toString());
-        order.setCreatedDate(new Date());
-        order.setOrderDate(new Date());
         order.setUpdateDate(new Date());
         
         return order;
@@ -168,5 +171,76 @@ public class OrderService {
         BeanUtils.copyProperties(request, orderDetail);
         orderDetail.setOrderDate(new Date());
         return orderDetail;
+    }
+    
+    @Transactional(value = TxType.REQUIRES_NEW, rollbackOn = Exception.class)
+    public Object editOrder(String id, MemberOrderRequest request) {
+        Optional<Order> order = orderRepository.findById(id);
+        try {
+            if (order.isEmpty()) {throw new RuntimeException("Order số: " + id + " không tồn tại trong hệ thống, Vui lòng kiểm tra lại");}
+        } catch (RuntimeException e) {
+            return e.getMessage();
+        }
+        
+        List<OrderDetail> orderDetails = request.getDishes().stream().map(this::mappingToOrderDetail).collect(
+                Collectors.toList());
+        
+        MenuResponse menu        = menuService.getMenu();
+        List<String> todayDishes = menu.getDishes().stream().map(MenuResponse.DishResponse::getName).toList();
+        
+        try {
+            if (orderDetails.isEmpty()) throw new RuntimeException("Danh sách món ăn đang trống");
+            orderDetails.forEach(orderDetail -> {
+                orderDetail.setOrder(order.get());
+                if (!todayDishes.contains(orderDetail.getDishName())) throw new RuntimeException(
+                        "Món " + orderDetail.getDishName() + " không nằm trong danh sách menu hôm nay: " + todayDishes.toString());
+            });
+        } catch (RuntimeException e) {
+            return e.getMessage();
+        }
+        
+        orderDetailRepository.saveAll(orderDetails);
+        orderRepository.save(order.get());
+        
+        order.get().setOrderDetails(orderDetails);
+        
+        return mappingOrderToMemberOrderResponse(order.get());
+    }
+    
+    public Object getOrderById(String id) {
+        Optional<Order> order = orderRepository.findById(id);
+        try {
+            if (order.isEmpty()) {throw new RuntimeException("Order số: " + id + " không tồn tại trong hệ thống, Vui lòng kiểm tra lại");}
+        } catch (RuntimeException e) {
+            return e.getMessage();
+        }
+        
+        List<OrderDetail> orderDetails = orderDetailRepository.findAllByOrder(order.get());
+        order.get().setOrderDetails(orderDetails);
+        return mappingOrderToMemberOrderResponse(order.get());
+    }
+    
+    @Transactional(value = TxType.REQUIRES_NEW, rollbackOn = Exception.class)
+    public Object deleteOrder(String id) {
+        Date currentDate = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        try {
+            Date timeup = sdf.parse(sdf.format(currentDate).substring(0,10) + " 09:30:00");
+            if (currentDate.after(timeup)) throw new RuntimeException("Không thể huỷ đơn sau 9h30 AM");
+        } catch (ParseException e) {
+            return sdf.format(currentDate).substring(0,10) + " 09:30:00";
+        } catch (RuntimeException e) {
+            return e.getMessage();
+        }
+        
+        Optional<Order> order = orderRepository.findById(id);
+        try {
+            if (order.isEmpty()) {throw new RuntimeException("Order số: " + id + " không tồn tại trong hệ thống, Vui lòng kiểm tra lại");}
+        } catch (RuntimeException e) {
+            return e.getMessage();
+        }
+        orderDetailRepository.deleteOrderDetailByOrder(order.get());
+        orderRepository.delete(order.get());
+        return "Bạn đã huỷ thành công đơn hàng";
     }
 }

@@ -25,4 +25,23 @@ public class SapoOrderController {
     	
     	return ResponseEntity.ok(orderService.placeOrder(request));
     }
+    
+    @PutMapping("/{id}")
+    @ResponseStatus(value = HttpStatus.OK)
+    public ResponseEntity<?> editOrder(@PathVariable String id, @RequestBody MemberOrderRequest request) {
+        
+        return ResponseEntity.ok(orderService.editOrder(id, request));
+    }
+    
+    @GetMapping("/{id}")
+    @ResponseStatus(value = HttpStatus.OK)
+    public ResponseEntity<?> getOrderById(@PathVariable String id) {
+        
+        return ResponseEntity.ok(orderService.getOrderById(id));
+    }
+    
+   @DeleteMapping("/{id}")
+   public ResponseEntity<?> deleteOrder(@PathVariable String id) {
+        return ResponseEntity.ok(orderService.deleteOrder(id));
+   }
 }
