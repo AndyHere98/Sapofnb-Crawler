@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class SapoMenuController {
     
-    private final MenuService sapoService;
+    private final MenuService menuService;
     
     @GetMapping("/get-menu")
     public ResponseEntity<?> getMenu() {
-        return ResponseEntity.ok(sapoService.getMenu());
+        return ResponseEntity.ok(menuService.getMenu());
     }
 }
