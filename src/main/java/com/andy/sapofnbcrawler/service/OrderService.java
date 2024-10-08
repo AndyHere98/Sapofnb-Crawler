@@ -99,6 +99,10 @@ public class OrderService {
     
     @Transactional(value = TxType.REQUIRES_NEW, rollbackOn = Exception.class)
     public Object placeOrder(MemberOrderRequest request) {
+        // Checking member has been order today or not
+        Optional<Order> orderCheck = orderRepository.getOrderByOrderDateOrderByCustomerName(request);
+        if (orderCheck.isPresent()) {return request.getCustomerName() + " đã đặt đơn hôm nay, vui lòng chỉnh sửa hoặc huỷ đơn trước 9h30 AM.";}
+        
         Order order = mappingToOrder(request);
         order.setId(UUID.randomUUID().toString());
         order.setCreatedDate(new Date());
@@ -175,6 +179,16 @@ public class OrderService {
     
     @Transactional(value = TxType.REQUIRES_NEW, rollbackOn = Exception.class)
     public Object editOrder(String id, MemberOrderRequest request) {
+        
+        Date currentDate = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        try {
+            Date timeup = sdf.parse(sdf.format(currentDate).substring(0,10) + " 09:30:00");
+            if (currentDate.after(timeup)) return "Không thể huỷ đơn sau 9h30 AM";
+        } catch (ParseException e) {
+            return sdf.format(currentDate).substring(0,10) + " 09:30:00";
+        }
+        
         Optional<Order> order = orderRepository.findById(id);
         try {
             if (order.isEmpty()) {throw new RuntimeException("Order số: " + id + " không tồn tại trong hệ thống, Vui lòng kiểm tra lại");}
@@ -226,11 +240,9 @@ public class OrderService {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         try {
             Date timeup = sdf.parse(sdf.format(currentDate).substring(0,10) + " 09:30:00");
-            if (currentDate.after(timeup)) throw new RuntimeException("Không thể huỷ đơn sau 9h30 AM");
+            if (currentDate.after(timeup)) return "Không thể huỷ đơn sau 9h30 AM";
         } catch (ParseException e) {
             return sdf.format(currentDate).substring(0,10) + " 09:30:00";
-        } catch (RuntimeException e) {
-            return e.getMessage();
         }
         
         Optional<Order> order = orderRepository.findById(id);
