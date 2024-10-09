@@ -1,5 +1,6 @@
 package com.andy.sapofnbcrawler.service;
 
+import com.andy.sapofnbcrawler.common.SapoConstants;
 import com.andy.sapofnbcrawler.common.SapoUtils;
 import com.andy.sapofnbcrawler.entity.Order;
 import com.andy.sapofnbcrawler.entity.OrderDetail;
@@ -33,8 +34,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OrderService {
     
-    private final String URI    = SapoUtils.URI;
-    private final String COOKIE = SapoUtils.COOKIE;
+    private final String URI    = SapoConstants.URI;
+    private final String COOKIE = SapoConstants.COOKIE;
     
     private final MenuService            menuService;
     private final IOrderRepository       orderRepository;

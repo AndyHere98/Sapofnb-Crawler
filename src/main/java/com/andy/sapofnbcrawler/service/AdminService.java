@@ -1,11 +1,14 @@
 package com.andy.sapofnbcrawler.service;
 
+import com.andy.sapofnbcrawler.common.SapoConstants;
 import com.andy.sapofnbcrawler.common.SapoUtils;
 import com.andy.sapofnbcrawler.entity.Order;
 import com.andy.sapofnbcrawler.entity.OrderDetail;
 import com.andy.sapofnbcrawler.repository.IOrderDetailRepository;
 import com.andy.sapofnbcrawler.repository.IOrderRepository;
+import com.andy.sapofnbcrawler.request.SummaryRequest;
 import com.andy.sapofnbcrawler.response.OrderResponse;
+import hirondelle.date4j.DateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -18,19 +21,14 @@ import java.util.*;
 @RequiredArgsConstructor
 public class AdminService {
     
-    private final String URI    = SapoUtils.URI;
-    private final String COOKIE = SapoUtils.COOKIE;
-    
-    private final MenuService            menuService;
     private final IOrderRepository       orderRepository;
     private final IOrderDetailRepository orderDetailRepository;
     
     
     public Object summaryTodayOrder() {
-        SimpleDateFormat sdf     = new SimpleDateFormat("dd/MM/yyyy");
-        SimpleDateFormat sdfTime = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-        Date             today   = new Date();
-        List<Order>      orders  = orderRepository.getOrderByOrderDate(sdf.format(today));
+        SimpleDateFormat sdf    = new SimpleDateFormat("dd/MM/yyyy");
+        Date             today  = new Date();
+        List<Order>      orders = orderRepository.getOrderByOrderDate(sdf.format(today));
         if (orders.isEmpty()) {
             return "Hôm nay không có đơn nào được đặt!";
         }
@@ -114,4 +112,64 @@ public class AdminService {
         
     }
     
+    public Object summaryOrdersByTime(SummaryRequest request) {
+        
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        SimpleDateFormat sdfInput = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar cal = Calendar.getInstance();
+        
+        DateTime today = DateTime.now(TimeZone.getDefault());
+        DateTime diffDate = today;
+        String day = "";
+        
+        List<Order> orderList = new ArrayList<>();
+        
+        try {
+            
+            switch (request.getUnit().toUpperCase()) {
+                case SapoConstants.UNIT_DAY -> {
+                    diffDate = today.minus(0, 0, request.getQuantity(), 0,
+                                           0, 0, 0, null);
+                    
+                    cal.setTime(sdfInput.parse(diffDate.toString().substring(0,10)));
+                    day = sdf.format(cal.getTime());
+                }
+                case SapoConstants.UNIT_WEEK -> {
+                    diffDate = today.minus(0, 0, request.getQuantity()*7, 0,
+                                           0, 0, 0, null);
+                    cal.setTime(sdfInput.parse(diffDate.toString().substring(0,10)));
+                    cal.set(Calendar.WEEK_OF_YEAR, cal.get(Calendar.WEEK_OF_YEAR));
+                    cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+                    day = sdf.format(cal.getTime());
+                }
+                case SapoConstants.UNIT_MONTH -> {
+                    diffDate = today.minus(0, request.getQuantity(), 0, 0,
+                                           0, 0, 0, null);
+                    cal.setTime(sdfInput.parse(diffDate.getStartOfMonth().toString().substring(0,10)));
+                    day = sdf.format(cal.getTime());
+                }
+                case SapoConstants.UNIT_YEAR -> {
+                    day = "01/01/" + (today.getYear() - request.getQuantity());
+                }
+                default -> {
+                    day = sdf.format(today.toString().substring(0,10));
+                }
+            }
+            
+            orderList = orderRepository.getOrderByOrderDateAndCustomerNameOrderByOrderDateAsc(
+                    request.getCustomerName(), day);
+            
+            if (orderList.isEmpty()) {return "Không có đơn hàng nào được đặt";}
+            
+            for (Order order : orderList) {
+                List<OrderDetail> orderDetailList = orderDetailRepository.findAllByOrder(order);
+                order.setOrderDetails(orderDetailList);
+            }
+            // TODO: mapping order list to order response
+        } catch (Exception e) {
+            return e.getMessage();
+        }
+        System.out.println(diffDate.toString());
+        return orderList;
+    }
 }
