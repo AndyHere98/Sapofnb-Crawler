@@ -28,6 +28,8 @@ public interface IOrderRepository extends JpaRepository<Order, String> {
                    )
     Optional<Order> getOrderByOrderDateOrderByCustomerName(@Param("request") MemberOrderRequest request);
     
-    @Query(value = "select o from Order o where FORMATDATETIME(o.orderDate, 'dd/MM/yyyy') <= FORMATDATETIME(PARSEDATETIME(:fromDate, 'dd/MM/yyyy'), 'dd/MM/yyyy')")
-    List<Order> getOrderByOrderDateAndCustomerNameOrderByOrderDateAsc(@Param("customerName") String customerName, String fromDate);
+    @Query(value = "select o from Order o where FORMATDATETIME(o.orderDate, 'dd/MM/yyyy') >= FORMATDATETIME(PARSEDATETIME(:fromDate, 'dd/MM/yyyy'), 'dd/MM/yyyy')"
+    		+ " and o.customerName like '%' || :customerName || '%'"
+    		+ " order by o.orderDate asc, o.customerName asc")
+    List<Order> getOrderByOrderDateAndCustomerNameOrderByOrderDateAsc(@Param("customerName") String customerName,@Param("fromDate") String fromDate);
 }

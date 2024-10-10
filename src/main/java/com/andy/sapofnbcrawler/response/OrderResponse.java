@@ -39,17 +39,18 @@ public class OrderResponse {
     
     @Data
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public class DishResponse {
+    public static class DishResponse {
         private String     dishName;
         private int        quantity;
-        private BigDecimal money;
+        private BigDecimal price;
         private String     member;
     }
     
     @Data
-    public class CustomerInfo {
+    public static class CustomerInfo {
         private String customerName;
         private String phone;
+        private String customerEmail;
     }
 }
 

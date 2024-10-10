@@ -15,7 +15,9 @@ import com.andy.sapofnbcrawler.response.OrderResponse;
 import jakarta.transaction.Transactional;
 import jakarta.transaction.Transactional.TxType;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -40,8 +42,10 @@ public class OrderService {
     private final MenuService            menuService;
     private final IOrderRepository       orderRepository;
     private final IOrderDetailRepository orderDetailRepository;
-    
-    
+
+    @Value("${sapo-mode}")
+    private static String mode;
+	
     public Object getCartOrder() {
         
         RestTemplate restTemplate = new RestTemplate();
@@ -78,20 +82,20 @@ public class OrderService {
     
     private OrderResponse mappingOrderResponse(OrderRequest orderRequest) {
         OrderResponse                    orderResponse = new OrderResponse();
-        OrderResponse.DishResponse       dishResponse  = new OrderResponse().new DishResponse();
+        OrderResponse.DishResponse       dishResponse  = new OrderResponse.DishResponse();
         List<OrderResponse.DishResponse> dishes        = new ArrayList<>();
         
         BeanUtils.copyProperties(orderRequest, orderResponse);
         orderResponse.setFullAddress(orderRequest.getShipment().getShipmentAddress().getFullAddress());
         
         for (int i = 0; i < orderRequest.getDishes().size(); i++) {
-            dishResponse = new OrderResponse().new DishResponse();
+            dishResponse = new OrderResponse.DishResponse();
             BeanUtils.copyProperties(orderRequest.getDishes().get(i), dishResponse);
             dishes.add(dishResponse);
         }
         
         orderResponse.setDishes(dishes);
-        OrderResponse.CustomerInfo cusResponse = new OrderResponse().new CustomerInfo();
+        OrderResponse.CustomerInfo cusResponse = new OrderResponse.CustomerInfo();
         BeanUtils.copyProperties(orderRequest.getCustomerInfo(), cusResponse);
         
         orderResponse.setCustomerInfo(cusResponse);
@@ -100,6 +104,18 @@ public class OrderService {
     
     @Transactional(value = TxType.REQUIRES_NEW, rollbackOn = Exception.class)
     public Object placeOrder(MemberOrderRequest request) {
+    	
+    	if ("prod".equalsIgnoreCase(mode)) {
+    		try {
+				Object rtnObject = SapoUtils.checkingTimeUp();
+				if (!rtnObject.getClass().isInstance(Boolean.class)) {
+					return rtnObject;
+				}
+			} catch (Exception e) {
+				// TODO: handle exception
+				return e.getMessage();			}
+    	}
+    	
         // Checking member has been order today or not
         Optional<Order> orderCheck = orderRepository.getOrderByOrderDateOrderByCustomerName(request);
         if (orderCheck.isPresent()) {return request.getCustomerName() + " đã đặt đơn hôm nay, vui lòng chỉnh sửa hoặc huỷ đơn trước 9h30 AM.";}
@@ -181,14 +197,16 @@ public class OrderService {
     @Transactional(value = TxType.REQUIRES_NEW, rollbackOn = Exception.class)
     public Object editOrder(String id, MemberOrderRequest request) {
         
-        Date currentDate = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        try {
-            Date timeup = sdf.parse(sdf.format(currentDate).substring(0,10) + " 09:30:00");
-            if (currentDate.after(timeup)) return "Không thể huỷ đơn sau 9h30 AM";
-        } catch (ParseException e) {
-            return sdf.format(currentDate).substring(0,10) + " 09:30:00";
-        }
+    	if ("prod".equalsIgnoreCase(mode)) {
+    		try {
+				Object rtnObject = SapoUtils.checkingTimeUp();
+				if (!rtnObject.getClass().isInstance(Boolean.class)) {
+					return rtnObject;
+				}
+			} catch (Exception e) {
+				// TODO: handle exception
+				return e.getMessage();			}
+    	}
         
         Optional<Order> order = orderRepository.findById(id);
         try {
@@ -237,14 +255,17 @@ public class OrderService {
     
     @Transactional(value = TxType.REQUIRES_NEW, rollbackOn = Exception.class)
     public Object deleteOrder(String id) {
-        Date currentDate = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        try {
-            Date timeup = sdf.parse(sdf.format(currentDate).substring(0,10) + " 09:30:00");
-            if (currentDate.after(timeup)) return "Không thể huỷ đơn sau 9h30 AM";
-        } catch (ParseException e) {
-            return sdf.format(currentDate).substring(0,10) + " 09:30:00";
-        }
+
+    	if ("prod".equalsIgnoreCase(mode)) {
+    		try {
+				Object rtnObject = SapoUtils.checkingTimeUp();
+				if (!rtnObject.getClass().isInstance(Boolean.class)) {
+					return rtnObject;
+				}
+			} catch (Exception e) {
+				// TODO: handle exception
+				return e.getMessage();			}
+    	}
         
         Optional<Order> order = orderRepository.findById(id);
         try {
@@ -254,6 +275,8 @@ public class OrderService {
         }
         orderDetailRepository.deleteOrderDetailByOrder(order.get());
         orderRepository.delete(order.get());
+        
         return "Bạn đã huỷ thành công đơn hàng";
     }
+    
 }

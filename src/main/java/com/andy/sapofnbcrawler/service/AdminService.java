@@ -1,5 +1,18 @@
 package com.andy.sapofnbcrawler.service;
 
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
+
+import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Service;
+
 import com.andy.sapofnbcrawler.common.SapoConstants;
 import com.andy.sapofnbcrawler.common.SapoUtils;
 import com.andy.sapofnbcrawler.entity.Order;
@@ -8,14 +21,10 @@ import com.andy.sapofnbcrawler.repository.IOrderDetailRepository;
 import com.andy.sapofnbcrawler.repository.IOrderRepository;
 import com.andy.sapofnbcrawler.request.SummaryRequest;
 import com.andy.sapofnbcrawler.response.OrderResponse;
+import com.andy.sapofnbcrawler.response.SummaryResponse;
+
 import hirondelle.date4j.DateTime;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
-import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
-import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -56,10 +65,10 @@ public class AdminService {
         List<OrderResponse.DishResponse> dishes        = new ArrayList<>();
         
         for (Map.Entry<String, Integer> dishItem : summaryDishes.entrySet()) {
-            OrderResponse.DishResponse dish = new OrderResponse().new DishResponse();
+            OrderResponse.DishResponse dish = new OrderResponse.DishResponse();
             dish.setDishName(dishItem.getKey());
             dish.setQuantity(dishItem.getValue());
-            dish.setMoney(summaryPrice.get(dishItem.getKey()));
+            dish.setPrice(summaryPrice.get(dishItem.getKey()));
             dishes.add(dish);
         }
         orderResponse.setDishes(dishes);
@@ -88,13 +97,13 @@ public class AdminService {
             BigDecimal        totalPrice      = BigDecimal.ZERO;
             List<OrderDetail> orderDetailList = orderDetailRepository.findAllByOrder(order);
             for (OrderDetail orderDetail : orderDetailList) {
-                OrderResponse.DishResponse dishResponse = new OrderResponse().new DishResponse();
+                OrderResponse.DishResponse dishResponse = new OrderResponse.DishResponse();
                 BeanUtils.copyProperties(orderDetail, dishResponse);
-                dishResponse.setMoney(orderDetail.getPrice().multiply(BigDecimal.valueOf(orderDetail.getQuantity())));
-                totalPrice = totalPrice.add(dishResponse.getMoney());
+                dishResponse.setPrice(orderDetail.getPrice().multiply(BigDecimal.valueOf(orderDetail.getQuantity())));
+                totalPrice = totalPrice.add(dishResponse.getPrice());
                 dishResponseList.add(dishResponse);
             }
-            OrderResponse.CustomerInfo customerInfo = new OrderResponse().new CustomerInfo();
+            OrderResponse.CustomerInfo customerInfo = new OrderResponse.CustomerInfo();
             customerInfo.setCustomerName(order.getCustomerName());
             customerInfo.setPhone(order.getCustomerPhone());
             orderResponse.setCustomerInfo(customerInfo);
@@ -123,6 +132,8 @@ public class AdminService {
         String day = "";
         
         List<Order> orderList = new ArrayList<>();
+        List<OrderResponse> orderResponses = new ArrayList<>();
+        List<SummaryResponse> rtnList = new ArrayList<>();
         
         try {
             
@@ -161,15 +172,65 @@ public class AdminService {
             
             if (orderList.isEmpty()) {return "Không có đơn hàng nào được đặt";}
             
+            Map<String, List<Order>> summaryMap = new HashMap<>();
+            List<Order> orderMappingList = new ArrayList<>();
+            
             for (Order order : orderList) {
+            	String orderDate = sdf.format(order.getOrderDate());
+
                 List<OrderDetail> orderDetailList = orderDetailRepository.findAllByOrder(order);
                 order.setOrderDetails(orderDetailList);
+                
+            	if (summaryMap.get(orderDate) == null) {
+            		orderMappingList = new ArrayList<>();
+            		orderMappingList.add(order);
+            	} else {
+            		orderMappingList.add(order);
+            	}
+            	summaryMap.put(orderDate, orderMappingList);
             }
+            for (Map.Entry<String, List<Order>> map : summaryMap.entrySet()) {
+            	SummaryResponse response = new SummaryResponse();
+            	response.setOrderDate(day);
+            	List<Order> orders = map.getValue();
+            	response.setTotalPrice(BigDecimal.valueOf(orders.stream().mapToDouble(order -> order.getTotalPrice().doubleValue()).sum()));
+            	orderResponses = orders.stream().map(this::mappingOrderToOrderResponse).toList();
+            	response.setOrderList(orderResponses);
+            	rtnList.add(response);
+			}
             // TODO: mapping order list to order response
+            
+            
         } catch (Exception e) {
             return e.getMessage();
         }
-        System.out.println(diffDate.toString());
-        return orderList;
+        return rtnList;
+    }
+    
+    private OrderResponse mappingOrderToOrderResponse(Order order) {
+        OrderResponse orderResponse = new OrderResponse();
+        OrderResponse.CustomerInfo cusResponse = new OrderResponse.CustomerInfo();
+        List<OrderResponse.DishResponse> dishes = new ArrayList<>();
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        
+        orderResponse.setOrderSku(order.getId());
+        orderResponse.setTotalPrice(order.getTotalPrice());
+        
+        cusResponse.setCustomerName(order.getCustomerName());
+        cusResponse.setPhone(order.getCustomerPhone());
+        cusResponse.setCustomerEmail(order.getCustomerEmail());
+        orderResponse.setCustomerInfo(cusResponse);
+        
+        dishes = order.getOrderDetails().stream().map(detail -> {
+        	OrderResponse.DishResponse dish = new OrderResponse.DishResponse();
+            dish.setDishName(detail.getDishName());
+            dish.setQuantity(detail.getQuantity());
+            dish.setPrice(detail.getPrice());
+            return dish;
+        }).toList();
+        orderResponse.setDishes(dishes);
+        
+        return orderResponse;
     }
 }
