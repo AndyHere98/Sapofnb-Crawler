@@ -10,9 +10,6 @@ import java.util.Map;
 
 public class SapoUtils {
 
-	public final static String URI = "https://menu.sapofnb.vn/api";
-	public final static String COOKIE = "store=bfe11e5ff59711eb80610a75247ce32e";
-
 	public static String getJsonData(String resData) {
 		JSONArray array = new JSONArray(resData);
 		String json = !array.isEmpty() ? array.getJSONObject(0).toString() : "";

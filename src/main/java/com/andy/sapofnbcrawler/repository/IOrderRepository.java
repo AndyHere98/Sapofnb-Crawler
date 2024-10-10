@@ -2,6 +2,7 @@ package com.andy.sapofnbcrawler.repository;
 
 import com.andy.sapofnbcrawler.entity.Order;
 import com.andy.sapofnbcrawler.request.MemberOrderRequest;
+import com.andy.sapofnbcrawler.request.SummaryRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -26,4 +27,7 @@ public interface IOrderRepository extends JpaRepository<Order, String> {
                    " and FORMATDATETIME(o.orderDate, 'dd/MM/yyyy') = FORMATDATETIME(current_date, 'dd/MM/yyyy')"
                    )
     Optional<Order> getOrderByOrderDateOrderByCustomerName(@Param("request") MemberOrderRequest request);
+    
+    @Query(value = "select o from Order o where FORMATDATETIME(o.orderDate, 'dd/MM/yyyy') <= FORMATDATETIME(PARSEDATETIME(:fromDate, 'dd/MM/yyyy'), 'dd/MM/yyyy')")
+    List<Order> getOrderByOrderDateAndCustomerNameOrderByOrderDateAsc(@Param("customerName") String customerName, String fromDate);
 }

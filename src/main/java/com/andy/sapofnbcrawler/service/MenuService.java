@@ -1,5 +1,6 @@
 package com.andy.sapofnbcrawler.service;
 
+import com.andy.sapofnbcrawler.common.SapoConstants;
 import com.andy.sapofnbcrawler.common.SapoUtils;
 import com.andy.sapofnbcrawler.request.MenuRequest;
 import com.andy.sapofnbcrawler.response.MenuResponse;
@@ -19,8 +20,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MenuService {
 
-	private final String URI = SapoUtils.URI;
-	private final String COOKIE = SapoUtils.COOKIE;
+	private final String URI = SapoConstants.URI;
+	private final String COOKIE = SapoConstants.COOKIE;
 
 	@Transactional(value = Transactional.TxType.REQUIRED)
 	public MenuResponse getMenu() {
