@@ -24,7 +24,7 @@ public class MenuService {
 	private final String COOKIE = SapoConstants.COOKIE;
 
 	@Transactional(value = Transactional.TxType.REQUIRED)
-	public MenuResponse getMenu() {
+	public MenuResponse getMenu() throws Exception {
 
 		RestTemplate restTemplate = new RestTemplate();
 		StringBuilder sUrl = new StringBuilder();
@@ -41,7 +41,7 @@ public class MenuService {
 		String json = SapoUtils.getJsonData(response.getBody());
 
 		if (json.isEmpty())
-			return null;
+			throw new Exception("There is no response received " + response.getBody());
 		
 		MenuRequest menuRequest = new MenuRequest();
 		MenuResponse menuResponse = new MenuResponse();

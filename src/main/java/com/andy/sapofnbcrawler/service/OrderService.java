@@ -42,12 +42,16 @@ public class OrderService {
     private final MenuService            menuService;
     private final IOrderRepository       orderRepository;
     private final IOrderDetailRepository orderDetailRepository;
+    
+    @Value("${sapo.customer.name}")
+    private String customerName;
+    @Value("${sapo.customer.phone}")
+    private String customerPhone;
 
     @Value("${sapo-mode}")
     private static String mode;
 	
-    public Object getCartOrder() {
-        
+    public Object getCartOrder() throws Exception {
         RestTemplate restTemplate = new RestTemplate();
         
         StringBuilder sUrl = new StringBuilder();
@@ -57,8 +61,8 @@ public class OrderService {
         String queryParam = "customer_online_name={cusName}&customer_online_phone={cusPhone}";
         
         Map<String, String> queryParamMap = new HashMap<>();
-        queryParamMap.put("cusName", "Nguyên");
-        queryParamMap.put("cusPhone", "0784202149");
+        queryParamMap.put("cusName", customerName);
+        queryParamMap.put("cusPhone", customerPhone);
         
         UriComponents urlBuilder = UriComponentsBuilder.fromUriString(sUrl.toString()).query(queryParam)
                                                        .buildAndExpand(queryParamMap);
@@ -73,7 +77,7 @@ public class OrderService {
         
         String json = SapoUtils.getJsonData(response.getBody());
         if (json.isEmpty())
-            return null;
+			throw new Exception("There is no response received " + response.getBody());
         
         OrderRequest  orderRequest  = (OrderRequest) SapoUtils.convertJsonToObject(json, OrderRequest.class);
         
@@ -103,9 +107,9 @@ public class OrderService {
     }
     
     @Transactional(value = TxType.REQUIRES_NEW, rollbackOn = Exception.class)
-    public Object placeOrder(MemberOrderRequest request) {
+    public Object placeOrder(MemberOrderRequest request) throws Exception {
     	
-    	if ("prod".equalsIgnoreCase(mode)) {
+    	if (SapoConstants.APP_MODE_PRODUCTION.equalsIgnoreCase(mode)) {
     		try {
 				Object rtnObject = SapoUtils.checkingTimeUp();
 				if (!rtnObject.getClass().isInstance(Boolean.class)) {
@@ -113,12 +117,15 @@ public class OrderService {
 				}
 			} catch (Exception e) {
 				// TODO: handle exception
-				return e.getMessage();			}
+				e.printStackTrace();
+				throw new Exception(e.getMessage());
+			}
     	}
     	
         // Checking member has been order today or not
         Optional<Order> orderCheck = orderRepository.getOrderByOrderDateOrderByCustomerName(request);
-        if (orderCheck.isPresent()) {return request.getCustomerName() + " đã đặt đơn hôm nay, vui lòng chỉnh sửa hoặc huỷ đơn trước 9h30 AM.";}
+        if (orderCheck.isPresent()) 
+        	throw new Exception(request.getCustomerName() + " đã đặt đơn hôm nay, vui lòng chỉnh sửa hoặc huỷ đơn trước 9h30 AM.");
         
         Order order = mappingToOrder(request);
         order.setId(UUID.randomUUID().toString());
@@ -127,7 +134,14 @@ public class OrderService {
         List<OrderDetail> orderDetails = request.getDishes().stream().map(this::mappingToOrderDetail).collect(
                 Collectors.toList());
         
-        MenuResponse menu        = menuService.getMenu();
+        MenuResponse menu = new MenuResponse();
+		try {
+			menu = menuService.getMenu();
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+			throw new Exception(e1.getMessage());
+		}
         List<String> todayDishes = menu.getDishes().stream().map(MenuResponse.DishResponse::getName).toList();
         
         try {
@@ -139,7 +153,8 @@ public class OrderService {
                         "Món " + orderDetail.getDishName() + " không nằm trong danh sách menu hôm nay: " + todayDishes.toString());
             });
         } catch (RuntimeException e) {
-            return e.getMessage();
+        	e.printStackTrace();
+        	throw new Exception(e.getMessage());
         }
         
         orderRepository.save(order);
@@ -195,9 +210,9 @@ public class OrderService {
     }
     
     @Transactional(value = TxType.REQUIRES_NEW, rollbackOn = Exception.class)
-    public Object editOrder(String id, MemberOrderRequest request) {
+    public Object editOrder(String id, MemberOrderRequest request) throws Exception {
         
-    	if ("prod".equalsIgnoreCase(mode)) {
+    	if (SapoConstants.APP_MODE_PRODUCTION.equalsIgnoreCase(mode)) {
     		try {
 				Object rtnObject = SapoUtils.checkingTimeUp();
 				if (!rtnObject.getClass().isInstance(Boolean.class)) {
@@ -205,14 +220,17 @@ public class OrderService {
 				}
 			} catch (Exception e) {
 				// TODO: handle exception
-				return e.getMessage();			}
+				e.printStackTrace();
+				throw new Exception(e.getMessage());
+			}
     	}
         
         Optional<Order> order = orderRepository.findById(id);
         try {
             if (order.isEmpty()) {throw new RuntimeException("Order số: " + id + " không tồn tại trong hệ thống, Vui lòng kiểm tra lại");}
         } catch (RuntimeException e) {
-            return e.getMessage();
+			e.printStackTrace();
+			throw new Exception(e.getMessage());
         }
         
         List<OrderDetail> orderDetails = request.getDishes().stream().map(this::mappingToOrderDetail).collect(
@@ -229,7 +247,8 @@ public class OrderService {
                         "Món " + orderDetail.getDishName() + " không nằm trong danh sách menu hôm nay: " + todayDishes.toString());
             });
         } catch (RuntimeException e) {
-            return e.getMessage();
+			e.printStackTrace();
+			throw new Exception(e.getMessage());
         }
         
         orderDetailRepository.saveAll(orderDetails);
@@ -240,12 +259,13 @@ public class OrderService {
         return mappingOrderToMemberOrderResponse(order.get());
     }
     
-    public Object getOrderById(String id) {
+    public Object getOrderById(String id) throws Exception {
         Optional<Order> order = orderRepository.findById(id);
         try {
             if (order.isEmpty()) {throw new RuntimeException("Order số: " + id + " không tồn tại trong hệ thống, Vui lòng kiểm tra lại");}
         } catch (RuntimeException e) {
-            return e.getMessage();
+			e.printStackTrace();
+			throw new Exception(e.getMessage());
         }
         
         List<OrderDetail> orderDetails = orderDetailRepository.findAllByOrder(order.get());
@@ -254,9 +274,9 @@ public class OrderService {
     }
     
     @Transactional(value = TxType.REQUIRES_NEW, rollbackOn = Exception.class)
-    public Object deleteOrder(String id) {
+    public Object deleteOrder(String id) throws Exception {
 
-    	if ("prod".equalsIgnoreCase(mode)) {
+    	if (SapoConstants.APP_MODE_PRODUCTION.equalsIgnoreCase(mode)) {
     		try {
 				Object rtnObject = SapoUtils.checkingTimeUp();
 				if (!rtnObject.getClass().isInstance(Boolean.class)) {
@@ -264,19 +284,24 @@ public class OrderService {
 				}
 			} catch (Exception e) {
 				// TODO: handle exception
-				return e.getMessage();			}
+				e.printStackTrace();
+				throw new Exception(e.getMessage());	}
     	}
         
         Optional<Order> order = orderRepository.findById(id);
         try {
             if (order.isEmpty()) {throw new RuntimeException("Order số: " + id + " không tồn tại trong hệ thống, Vui lòng kiểm tra lại");}
         } catch (RuntimeException e) {
-            return e.getMessage();
+			e.printStackTrace();
+			throw new Exception(e.getMessage());
         }
         orderDetailRepository.deleteOrderDetailByOrder(order.get());
         orderRepository.delete(order.get());
         
-        return "Bạn đã huỷ thành công đơn hàng";
+        OrderResponse orderResponse = new OrderResponse();
+        orderResponse.setOrderSku(order.get().getId());
+        orderResponse.setTotalPrice(order.get().getTotalPrice());
+        return orderResponse;
     }
     
 }
