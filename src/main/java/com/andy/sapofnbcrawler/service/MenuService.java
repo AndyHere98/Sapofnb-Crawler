@@ -1,11 +1,8 @@
 package com.andy.sapofnbcrawler.service;
 
-import com.andy.sapofnbcrawler.common.SapoConstants;
-import com.andy.sapofnbcrawler.common.SapoUtils;
-import com.andy.sapofnbcrawler.request.MenuRequest;
-import com.andy.sapofnbcrawler.response.MenuResponse;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -13,8 +10,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.andy.sapofnbcrawler.common.SapoConstants;
+import com.andy.sapofnbcrawler.common.SapoUtils;
+import com.andy.sapofnbcrawler.exception.ResponseNotFoundException;
+import com.andy.sapofnbcrawler.request.MenuRequest;
+import com.andy.sapofnbcrawler.response.MenuResponse;
+
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +27,7 @@ public class MenuService {
 	private final String COOKIE = SapoConstants.COOKIE;
 
 	@Transactional(value = Transactional.TxType.REQUIRED)
-	public MenuResponse getMenu() throws Exception {
+	public MenuResponse getMenu() {
 
 		RestTemplate restTemplate = new RestTemplate();
 		StringBuilder sUrl = new StringBuilder();
@@ -41,7 +44,7 @@ public class MenuService {
 		String json = SapoUtils.getJsonData(response.getBody());
 
 		if (json.isEmpty())
-			throw new Exception("There is no response received " + response.getBody());
+			throw new ResponseNotFoundException("There is no response received in getMenu(): " + response.getBody());
 		
 		MenuRequest menuRequest = new MenuRequest();
 		MenuResponse menuResponse = new MenuResponse();

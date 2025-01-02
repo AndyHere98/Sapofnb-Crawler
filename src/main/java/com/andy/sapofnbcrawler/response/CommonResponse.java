@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import lombok.Data;
 
 @Data
-@JsonRootName("respone")
+@JsonRootName("response")
 @JsonInclude(Include.NON_NULL)
 public class CommonResponse {
 	

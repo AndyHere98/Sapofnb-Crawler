@@ -1,15 +1,15 @@
 package com.andy.sapofnbcrawler.response;
 
 
+import java.math.BigDecimal;
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonRootName;
-import lombok.Data;
 
-import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.util.List;
+import lombok.Data;
 
 @Data
 @JsonRootName("menu")

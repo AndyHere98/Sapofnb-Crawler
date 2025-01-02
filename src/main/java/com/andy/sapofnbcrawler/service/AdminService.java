@@ -1,6 +1,7 @@
 package com.andy.sapofnbcrawler.service;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -17,6 +18,7 @@ import com.andy.sapofnbcrawler.common.SapoConstants;
 import com.andy.sapofnbcrawler.common.SapoUtils;
 import com.andy.sapofnbcrawler.entity.Order;
 import com.andy.sapofnbcrawler.entity.OrderDetail;
+import com.andy.sapofnbcrawler.exception.OrderNotFoundException;
 import com.andy.sapofnbcrawler.repository.IOrderDetailRepository;
 import com.andy.sapofnbcrawler.repository.IOrderRepository;
 import com.andy.sapofnbcrawler.request.SummaryRequest;
@@ -39,7 +41,7 @@ public class AdminService {
         Date             today  = new Date();
         List<Order>      orders = orderRepository.getOrderByOrderDate(sdf.format(today));
         if (orders.isEmpty()) {
-            return "Hôm nay không có đơn nào được đặt!";
+            throw new OrderNotFoundException("Hôm nay không có đơn nào được đặt!");
         }
         Map<String, Integer>    summaryDishes = new HashMap<>();
         Map<String, BigDecimal> summaryPrice  = new HashMap<>();
@@ -85,7 +87,7 @@ public class AdminService {
         Date             today   = new Date();
         List<Order>      orders  = orderRepository.getOrdersByOrderDateOrderByCustomerName(sdf.format(today));
         if (orders.isEmpty()) {
-            return "Hôm nay không có đơn nào được đặt!";
+            throw new OrderNotFoundException("Hôm nay không có đơn nào được đặt!");
         }
         
         List<OrderResponse> orderResponseList = new ArrayList<>();
@@ -112,8 +114,8 @@ public class AdminService {
             orderResponse.setPaymentMethodType(order.getPaymentMethodType());
             orderResponse.setPaymentMethodName(SapoUtils.getPayment(order.getPaymentMethodType()));
             orderResponse.setOrderDate(sdf.format(today));
-            orderResponse.setCreatedOn(sdfTime.format(order.getCreatedDate().getTime()));
-            orderResponse.setModifiedOn(sdfTime.format(order.getUpdateDate().getTime()));
+            orderResponse.setCreatedOn(sdfTime.format(order.getCreatedDate()));
+            orderResponse.setModifiedOn(sdfTime.format(order.getUpdateDate()));
             orderResponseList.add(orderResponse);
         }
         
@@ -121,7 +123,7 @@ public class AdminService {
         
     }
     
-    public Object summaryOrdersByTime(SummaryRequest request) {
+    public Object summaryOrdersByTime(SummaryRequest request) throws ParseException {
         
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         SimpleDateFormat sdfInput = new SimpleDateFormat("yyyy-MM-dd");
@@ -170,7 +172,9 @@ public class AdminService {
             orderList = orderRepository.getOrderByOrderDateAndCustomerNameOrderByOrderDateAsc(
                     request.getCustomerName(), day);
             
-            if (orderList.isEmpty()) {return "Không có đơn hàng nào được đặt";}
+            if (orderList.isEmpty()) {
+            	throw new OrderNotFoundException("Hôm nay không có đơn nào được đặt!");
+            }
             
             Map<String, List<Order>> summaryMap = new HashMap<>();
             List<Order> orderMappingList = new ArrayList<>();
@@ -201,8 +205,10 @@ public class AdminService {
             // TODO: mapping order list to order response
             
             
-        } catch (Exception e) {
-            return e.getMessage();
+        } catch (ParseException e) {
+        	throw new ParseException ("Parse date failed: " + e.getMessage(), 0);
+        } catch (RuntimeException e) {
+        	throw new RuntimeException("Error occurred in summaryOrdersByTime: " + e.getMessage());
         }
         return rtnList;
     }
@@ -212,8 +218,6 @@ public class AdminService {
         OrderResponse.CustomerInfo cusResponse = new OrderResponse.CustomerInfo();
         List<OrderResponse.DishResponse> dishes = new ArrayList<>();
 
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-        
         orderResponse.setOrderSku(order.getId());
         orderResponse.setTotalPrice(order.getTotalPrice());
         

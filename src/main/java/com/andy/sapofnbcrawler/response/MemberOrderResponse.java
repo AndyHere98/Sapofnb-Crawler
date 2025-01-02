@@ -1,13 +1,14 @@
 package com.andy.sapofnbcrawler.response;
 
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
-import lombok.Data;
 
-import java.math.BigDecimal;
-import java.util.Date;
-import java.util.List;
+import lombok.Data;
 
 @Data
 @JsonRootName("menu")
@@ -15,8 +16,8 @@ public class MemberOrderResponse {
 
 	private String orderSku;
     private String status;
-    private Date   createdOn;
-    private Date   modifiedOn;
+    private LocalDateTime   createdOn;
+    private LocalDateTime   modifiedOn;
     private BigDecimal totalPrice;
     @JsonProperty("dishes")
     private List<DishResponse> dishes;

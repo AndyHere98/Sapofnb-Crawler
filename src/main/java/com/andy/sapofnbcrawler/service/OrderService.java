@@ -1,20 +1,13 @@
 package com.andy.sapofnbcrawler.service;
 
-import com.andy.sapofnbcrawler.common.SapoConstants;
-import com.andy.sapofnbcrawler.common.SapoUtils;
-import com.andy.sapofnbcrawler.entity.Order;
-import com.andy.sapofnbcrawler.entity.OrderDetail;
-import com.andy.sapofnbcrawler.repository.IOrderDetailRepository;
-import com.andy.sapofnbcrawler.repository.IOrderRepository;
-import com.andy.sapofnbcrawler.request.MemberOrderRequest;
-import com.andy.sapofnbcrawler.request.MemberOrderRequest.DishRequest;
-import com.andy.sapofnbcrawler.request.OrderRequest;
-import com.andy.sapofnbcrawler.response.MemberOrderResponse;
-import com.andy.sapofnbcrawler.response.MenuResponse;
-import com.andy.sapofnbcrawler.response.OrderResponse;
-import jakarta.transaction.Transactional;
-import jakarta.transaction.Transactional.TxType;
-import lombok.RequiredArgsConstructor;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,10 +20,23 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.stream.Collectors;
+import com.andy.sapofnbcrawler.common.SapoConstants;
+import com.andy.sapofnbcrawler.common.SapoUtils;
+import com.andy.sapofnbcrawler.entity.Order;
+import com.andy.sapofnbcrawler.entity.OrderDetail;
+import com.andy.sapofnbcrawler.repository.IOrderDetailRepository;
+import com.andy.sapofnbcrawler.repository.IOrderRepository;
+import com.andy.sapofnbcrawler.request.MemberOrderRequest;
+import com.andy.sapofnbcrawler.request.MemberOrderRequest.DishRequest;
+import com.andy.sapofnbcrawler.request.OrderRequest;
+import com.andy.sapofnbcrawler.response.MemberOrderResponse;
+import com.andy.sapofnbcrawler.response.MenuResponse;
+import com.andy.sapofnbcrawler.response.OrderResponse;
+import com.andy.sapofnbcrawler.validation.OrderValidation;
+
+import jakarta.transaction.Transactional;
+import jakarta.transaction.Transactional.TxType;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -110,52 +116,33 @@ public class OrderService {
     public Object placeOrder(MemberOrderRequest request) throws Exception {
     	
     	if (SapoConstants.APP_MODE_PRODUCTION.equalsIgnoreCase(mode)) {
-    		try {
-				Object rtnObject = SapoUtils.checkingTimeUp();
-				if (!rtnObject.getClass().isInstance(Boolean.class)) {
-					return rtnObject;
-				}
-			} catch (Exception e) {
-				// TODO: handle exception
-				e.printStackTrace();
-				throw new Exception(e.getMessage());
+			Object rtnObject = SapoUtils.checkingTimeUp();
+			if (!rtnObject.getClass().isInstance(Boolean.class)) {
+				return rtnObject;
 			}
     	}
     	
         // Checking member has been order today or not
         Optional<Order> orderCheck = orderRepository.getOrderByOrderDateOrderByCustomerName(request);
-        if (orderCheck.isPresent()) 
-        	throw new Exception(request.getCustomerName() + " đã đặt đơn hôm nay, vui lòng chỉnh sửa hoặc huỷ đơn trước 9h30 AM.");
+        OrderValidation.isOrderFinal(orderCheck, request.getCustomerName());
         
         Order order = mappingToOrder(request);
         order.setId(UUID.randomUUID().toString());
-        order.setCreatedDate(new Date());
-        order.setOrderDate(new Date());
+        order.setCreatedBy(request.getCustomerName());
+        order.setCreatedDate(LocalDateTime.now());
+        order.setOrderDate(LocalDateTime.now());
         List<OrderDetail> orderDetails = request.getDishes().stream().map(this::mappingToOrderDetail).collect(
                 Collectors.toList());
+        OrderValidation.isNoDishes(orderDetails); // Check no dish mapped
         
-        MenuResponse menu = new MenuResponse();
-		try {
-			menu = menuService.getMenu();
-		} catch (Exception e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-			throw new Exception(e1.getMessage());
-		}
+        MenuResponse menu = menuService.getMenu();
         List<String> todayDishes = menu.getDishes().stream().map(MenuResponse.DishResponse::getName).toList();
         
-        try {
-            if (orderDetails.isEmpty()) throw new RuntimeException("Danh sách món ăn đang trống");
-            
-            orderDetails.forEach(orderDetail -> {
-                orderDetail.setOrder(order);
-                if (!todayDishes.contains(orderDetail.getDishName())) throw new RuntimeException(
-                        "Món " + orderDetail.getDishName() + " không nằm trong danh sách menu hôm nay: " + todayDishes.toString());
-            });
-        } catch (RuntimeException e) {
-        	e.printStackTrace();
-        	throw new Exception(e.getMessage());
-        }
+        
+        orderDetails.forEach(orderDetail -> {
+            orderDetail.setOrder(order);
+            OrderValidation.checkDishIsNotInMenu(todayDishes, orderDetail);
+        });
         
         orderRepository.save(order);
         orderDetailRepository.saveAll(orderDetails);
@@ -197,7 +184,7 @@ public class OrderService {
     private Order mappingToOrder(MemberOrderRequest request) {
         Order order = new Order();
         BeanUtils.copyProperties(request, order);
-        order.setUpdateDate(new Date());
+        order.setUpdateDate(LocalDateTime.now());
         
         return order;
     }
@@ -205,7 +192,7 @@ public class OrderService {
     private OrderDetail mappingToOrderDetail(DishRequest request) {
         OrderDetail orderDetail = new OrderDetail();
         BeanUtils.copyProperties(request, orderDetail);
-        orderDetail.setOrderDate(new Date());
+        orderDetail.setOrderDate(LocalDateTime.now());
         return orderDetail;
     }
     
@@ -213,94 +200,62 @@ public class OrderService {
     public Object editOrder(String id, MemberOrderRequest request) throws Exception {
         
     	if (SapoConstants.APP_MODE_PRODUCTION.equalsIgnoreCase(mode)) {
-    		try {
-				Object rtnObject = SapoUtils.checkingTimeUp();
-				if (!rtnObject.getClass().isInstance(Boolean.class)) {
-					return rtnObject;
-				}
-			} catch (Exception e) {
-				// TODO: handle exception
-				e.printStackTrace();
-				throw new Exception(e.getMessage());
+			Object rtnObject = SapoUtils.checkingTimeUp();
+			if (!rtnObject.getClass().isInstance(Boolean.class)) {
+				return rtnObject;
 			}
     	}
         
-        Optional<Order> order = orderRepository.findById(id);
-        try {
-            if (order.isEmpty()) {throw new RuntimeException("Order số: " + id + " không tồn tại trong hệ thống, Vui lòng kiểm tra lại");}
-        } catch (RuntimeException e) {
-			e.printStackTrace();
-			throw new Exception(e.getMessage());
-        }
+        Optional<Order> optionalOrder = orderRepository.findById(id);
+        Order order = OrderValidation.isValidOrder(optionalOrder, id);
         
         List<OrderDetail> orderDetails = request.getDishes().stream().map(this::mappingToOrderDetail).collect(
                 Collectors.toList());
+        OrderValidation.isNoDishes(orderDetails); // Check no dish mapped
         
         MenuResponse menu        = menuService.getMenu();
         List<String> todayDishes = menu.getDishes().stream().map(MenuResponse.DishResponse::getName).toList();
         
-        try {
-            if (orderDetails.isEmpty()) throw new RuntimeException("Danh sách món ăn đang trống");
-            orderDetails.forEach(orderDetail -> {
-                orderDetail.setOrder(order.get());
-                if (!todayDishes.contains(orderDetail.getDishName())) throw new RuntimeException(
-                        "Món " + orderDetail.getDishName() + " không nằm trong danh sách menu hôm nay: " + todayDishes.toString());
-            });
-        } catch (RuntimeException e) {
-			e.printStackTrace();
-			throw new Exception(e.getMessage());
-        }
+        orderDetails.forEach(orderDetail -> {
+            orderDetail.setOrder(order);
+            OrderValidation.checkDishIsNotInMenu(todayDishes, orderDetail);
+        });
         
         orderDetailRepository.saveAll(orderDetails);
-        orderRepository.save(order.get());
+        orderRepository.save(order);
         
-        order.get().setOrderDetails(orderDetails);
+        order.setOrderDetails(orderDetails);
         
-        return mappingOrderToMemberOrderResponse(order.get());
+        return mappingOrderToMemberOrderResponse(order);
     }
     
     public Object getOrderById(String id) throws Exception {
-        Optional<Order> order = orderRepository.findById(id);
-        try {
-            if (order.isEmpty()) {throw new RuntimeException("Order số: " + id + " không tồn tại trong hệ thống, Vui lòng kiểm tra lại");}
-        } catch (RuntimeException e) {
-			e.printStackTrace();
-			throw new Exception(e.getMessage());
-        }
+        Optional<Order> optionalOrder = orderRepository.findById(id);
+        Order order = OrderValidation.isValidOrder(optionalOrder, id);
         
-        List<OrderDetail> orderDetails = orderDetailRepository.findAllByOrder(order.get());
-        order.get().setOrderDetails(orderDetails);
-        return mappingOrderToMemberOrderResponse(order.get());
+        List<OrderDetail> orderDetails = orderDetailRepository.findAllByOrder(order);
+        order.setOrderDetails(orderDetails);
+        return mappingOrderToMemberOrderResponse(order);
     }
     
     @Transactional(value = TxType.REQUIRES_NEW, rollbackOn = Exception.class)
     public Object deleteOrder(String id) throws Exception {
 
     	if (SapoConstants.APP_MODE_PRODUCTION.equalsIgnoreCase(mode)) {
-    		try {
-				Object rtnObject = SapoUtils.checkingTimeUp();
-				if (!rtnObject.getClass().isInstance(Boolean.class)) {
-					return rtnObject;
-				}
-			} catch (Exception e) {
-				// TODO: handle exception
-				e.printStackTrace();
-				throw new Exception(e.getMessage());	}
+			Object rtnObject = SapoUtils.checkingTimeUp();
+			if (!rtnObject.getClass().isInstance(Boolean.class)) {
+				return rtnObject;
+			}
     	}
         
-        Optional<Order> order = orderRepository.findById(id);
-        try {
-            if (order.isEmpty()) {throw new RuntimeException("Order số: " + id + " không tồn tại trong hệ thống, Vui lòng kiểm tra lại");}
-        } catch (RuntimeException e) {
-			e.printStackTrace();
-			throw new Exception(e.getMessage());
-        }
-        orderDetailRepository.deleteOrderDetailByOrder(order.get());
-        orderRepository.delete(order.get());
+        Optional<Order> optionalOrder = orderRepository.findById(id);
+        Order order = OrderValidation.isValidOrder(optionalOrder, id);
+        orderDetailRepository.deleteOrderDetailByOrder(order);
+        orderRepository.delete(order);
         
         OrderResponse orderResponse = new OrderResponse();
-        orderResponse.setOrderSku(order.get().getId());
-        orderResponse.setTotalPrice(order.get().getTotalPrice());
+        orderResponse.setOrderSku(order.getId());
+        orderResponse.setTotalPrice(order.getTotalPrice());
         return orderResponse;
     }
     

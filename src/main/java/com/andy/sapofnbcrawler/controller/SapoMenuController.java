@@ -1,15 +1,16 @@
 package com.andy.sapofnbcrawler.controller;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.andy.sapofnbcrawler.common.SapoConstants;
 import com.andy.sapofnbcrawler.response.CommonResponse;
 import com.andy.sapofnbcrawler.response.MenuResponse;
 import com.andy.sapofnbcrawler.service.MenuService;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.ResponseEntity.BodyBuilder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("${sapo-api.version}")

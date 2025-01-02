@@ -1,15 +1,17 @@
 package com.andy.sapofnbcrawler.controller;
 
-import com.andy.sapofnbcrawler.common.SapoConstants;
-import com.andy.sapofnbcrawler.request.SummaryRequest;
-import com.andy.sapofnbcrawler.response.CommonResponse;
-import com.andy.sapofnbcrawler.service.AdminService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.andy.sapofnbcrawler.common.SapoConstants;
+import com.andy.sapofnbcrawler.request.SummaryRequest;
+import com.andy.sapofnbcrawler.response.CommonResponse;
+import com.andy.sapofnbcrawler.service.AdminService;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("${sapo-api.version}/admin")
