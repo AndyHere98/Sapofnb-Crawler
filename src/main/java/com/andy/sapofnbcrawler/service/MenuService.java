@@ -12,6 +12,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.andy.sapofnbcrawler.common.SapoConstants;
 import com.andy.sapofnbcrawler.common.SapoUtils;
+import com.andy.sapofnbcrawler.exception.ResourceNotFoundException;
 import com.andy.sapofnbcrawler.exception.ResponseNotFoundException;
 import com.andy.sapofnbcrawler.request.MenuRequest;
 import com.andy.sapofnbcrawler.response.MenuResponse;
@@ -44,7 +45,7 @@ public class MenuService {
 		String json = SapoUtils.getJsonData(response.getBody());
 
 		if (json.isEmpty())
-			throw new ResponseNotFoundException("There is no response received in getMenu(): " + response.getBody());
+			throw new ResourceNotFoundException("Dữ liệu phản hồi", "khi lấy thông tin menu", null);
 		
 		MenuRequest menuRequest = new MenuRequest();
 		MenuResponse menuResponse = new MenuResponse();

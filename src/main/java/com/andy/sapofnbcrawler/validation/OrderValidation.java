@@ -5,9 +5,8 @@ import java.util.Optional;
 
 import com.andy.sapofnbcrawler.entity.Order;
 import com.andy.sapofnbcrawler.entity.OrderDetail;
-import com.andy.sapofnbcrawler.exception.DishNotFoundException;
 import com.andy.sapofnbcrawler.exception.OrderExistedException;
-import com.andy.sapofnbcrawler.exception.OrderNotFoundException;
+import com.andy.sapofnbcrawler.exception.ResourceNotFoundException;
 
 public class OrderValidation {
 
@@ -15,7 +14,7 @@ public class OrderValidation {
 	
 	public static Order isValidOrder(Optional<Order> order, String orderId) {
 		if (!order.isPresent()) 
-			throw new OrderNotFoundException("Order số: " + orderId + " không tồn tại trong hệ thống, Vui lòng kiểm tra lại");
+			throw new ResourceNotFoundException("Đơn đặt hàng", "mã order", orderId);
 		return order.get();
 	}
 	
@@ -26,11 +25,11 @@ public class OrderValidation {
 	
 	public static void isNoDishes(List<OrderDetail> orderDetailList) {
 		if (orderDetailList.isEmpty()) 
-			throw new DishNotFoundException("Danh sách món ăn đang trống");
+			throw new ResourceNotFoundException("Danh sách Món ăn", null, null);
 	}
 	
 	public static void checkDishIsNotInMenu(List<String> todayDishes, OrderDetail orderDetail) {
-		if (!todayDishes.contains(orderDetail.getDishName())) throw new DishNotFoundException(
-                "Món " + orderDetail.getDishName() + " không nằm trong danh sách menu hôm nay: " + List.of(todayDishes));
+		if (!todayDishes.contains(orderDetail.getDishName())) throw new ResourceNotFoundException( String.format("Danh sách menu hôm nay: %s", List.of(todayDishes)), 
+                "Món", orderDetail.getDishName());
 	}
 }

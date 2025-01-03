@@ -128,8 +128,8 @@ public class OrderService {
         
         Order order = mappingToOrder(request);
         order.setId(UUID.randomUUID().toString());
-        order.setCreatedBy(request.getCustomerName());
-        order.setCreatedDate(LocalDateTime.now());
+//        order.setCreatedBy(request.getCustomerName());
+//        order.setCreatedDate(LocalDateTime.now());
         order.setOrderDate(LocalDateTime.now());
         List<OrderDetail> orderDetails = request.getDishes().stream().map(this::mappingToOrderDetail).collect(
                 Collectors.toList());

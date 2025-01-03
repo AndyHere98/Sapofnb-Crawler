@@ -34,11 +34,11 @@ public class SapoOrderController {
     		cartOrder = orderService.getCartOrder();
     		commonResponse.setData(cartOrder);
     		commonResponse.setStatus(SapoConstants.RESPONSE_STATUS_SUCCESS);
-    		commonResponse.setMessage("Cart order get successfully.");
+    		commonResponse.setMessage("Thông tin giỏ hàng được truy xuất thành công");
     		return ResponseEntity.ok(commonResponse);
 		} catch (Exception e) {
     		commonResponse.setStatus(SapoConstants.RESPONSE_STATUS_FAILED);
-    		commonResponse.setMessage("Cart order get failed with error: " + e.getMessage());
+    		commonResponse.setMessage("Truy xuất thông tin giỏ hàng đang lỗi: " + e.getMessage());
     		return ResponseEntity.internalServerError().body(commonResponse);
 		}
     }
@@ -52,11 +52,11 @@ public class SapoOrderController {
     		order = orderService.placeOrder(request);
     		commonResponse.setData(order);
     		commonResponse.setStatus(SapoConstants.RESPONSE_STATUS_SUCCESS);
-    		commonResponse.setMessage("Place order successfully.");
+    		commonResponse.setMessage("Bạn đặt đơn hàng hoàn tất.");
     		return ResponseEntity.ok(commonResponse);
 		} catch (Exception e) {
     		commonResponse.setStatus(SapoConstants.RESPONSE_STATUS_FAILED);
-    		commonResponse.setMessage("Place order failed with error: " + e.getMessage());
+    		commonResponse.setMessage("Đơn đặt hàng của bạn bị lỗi vì: " + e.getMessage());
     		return ResponseEntity.internalServerError().body(commonResponse);
 		}
     }
@@ -70,11 +70,11 @@ public class SapoOrderController {
     		order = orderService.editOrder(id, request);
     		commonResponse.setData(order);
     		commonResponse.setStatus(SapoConstants.RESPONSE_STATUS_SUCCESS);
-    		commonResponse.setMessage("Edit order successfully.");
+    		commonResponse.setMessage("Chỉnh sửa đơn hàng thành công");
     		return ResponseEntity.ok(commonResponse);
 		} catch (Exception e) {
     		commonResponse.setStatus(SapoConstants.RESPONSE_STATUS_FAILED);
-    		commonResponse.setMessage("Edit order failed with error: " + e.getMessage());
+    		commonResponse.setMessage("Đơn hàng không thể chỉnh sửa vì: " + e.getMessage());
     		return ResponseEntity.internalServerError().body(commonResponse);
 		}
     }
@@ -88,11 +88,11 @@ public class SapoOrderController {
     		order = orderService.getOrderById(id);
     		commonResponse.setData(order);
     		commonResponse.setStatus(SapoConstants.RESPONSE_STATUS_SUCCESS);
-    		commonResponse.setMessage("Get order successfully.");
+    		commonResponse.setMessage("Lấy thông tin đơn hoàn tất");
     		return ResponseEntity.ok(commonResponse);
 		} catch (Exception e) {
     		commonResponse.setStatus(SapoConstants.RESPONSE_STATUS_FAILED);
-    		commonResponse.setMessage("Get order failed with error: " + e.getMessage());
+    		commonResponse.setMessage("Lấy thông tin đơn hàng đang xảy ra lỗi: " + e.getMessage());
     		return ResponseEntity.internalServerError().body(commonResponse);
 		}
     }
@@ -105,11 +105,11 @@ public class SapoOrderController {
 	   		order = orderService.deleteOrder(id);
 	   		commonResponse.setData(order);
 	   		commonResponse.setStatus(SapoConstants.RESPONSE_STATUS_SUCCESS);
-	   		commonResponse.setMessage("Delete order successfully.");
+	   		commonResponse.setMessage("Bạn đã xoá đơn hàng thành công");
 	   		return ResponseEntity.ok(commonResponse);
 		} catch (Exception e) {
 	   		commonResponse.setStatus(SapoConstants.RESPONSE_STATUS_FAILED);
-	   		commonResponse.setMessage("Delete order failed with error: " + e.getMessage());
+	   		commonResponse.setMessage("Đơn hàng không thể xoá vì: " + e.getMessage());
 	   		return ResponseEntity.internalServerError().body(commonResponse);
 		}
    }

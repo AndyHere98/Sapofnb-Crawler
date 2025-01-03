@@ -27,7 +27,7 @@ public class Order extends BaseEntity {
 	private String id;
 	@Column(nullable = false, length = 200)
 	private String customerName;
-	@Column(nullable = false, length = 200, unique = true)
+	@Column(nullable = false, length = 20, unique = true)
     private String customerPhone;
 	@Column(nullable = false, length = 200, unique = true)
     private String customerEmail;
@@ -35,8 +35,8 @@ public class Order extends BaseEntity {
     private BigDecimal totalPrice;
 	@Column(nullable = false, length = 20)
     private String paymentMethodType;
-	@Column(nullable = false, length = 1, columnDefinition = "DEFAULT 0")
-    private boolean isPaid;
+	@Column(nullable = false, length = 1, columnDefinition = "NUMBER(1,0) DEFAULT 0")
+    private int isPaid;
     private LocalDateTime orderDate;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "order", orphanRemoval = true)
     private List<OrderDetail> orderDetails;

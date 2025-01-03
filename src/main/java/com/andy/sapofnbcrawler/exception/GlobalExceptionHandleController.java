@@ -14,8 +14,8 @@ import com.andy.sapofnbcrawler.response.ErrorResponse;
 @RestControllerAdvice
 public class GlobalExceptionHandleController {
 
-	@ExceptionHandler(OrderNotFoundException.class)
-	public ResponseEntity<ErrorResponse> handleOrderNotFoundException(OrderNotFoundException exception, WebRequest webRequest) {
+	@ExceptionHandler(ResourceNotFoundException.class)
+	public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException exception, WebRequest webRequest) {
 		ErrorResponse errorResponse = new ErrorResponse(
 					webRequest.getDescription(false),
 					HttpStatus.BAD_REQUEST,
@@ -38,30 +38,6 @@ public class GlobalExceptionHandleController {
 		return ResponseEntity.badRequest().body(errorResponse);
 	}
 	
-	@ExceptionHandler(DishNotFoundException.class)
-	public ResponseEntity<ErrorResponse> handleDishNotFoundException(DishNotFoundException exception, WebRequest webRequest) {
-		ErrorResponse errorResponse = new ErrorResponse(
-					webRequest.getDescription(false),
-					HttpStatus.BAD_REQUEST,
-					exception.getMessage(),
-					LocalDateTime.now()
-				);
-		
-		return ResponseEntity.badRequest().body(errorResponse);
-	}
-
-	@ExceptionHandler(ResponseNotFoundException.class)
-	public ResponseEntity<ErrorResponse> handleResponseNotFoundException(ResponseNotFoundException exception, WebRequest webRequest) {
-		ErrorResponse errorResponse = new ErrorResponse(
-					webRequest.getDescription(false),
-					HttpStatus.BAD_REQUEST,
-					exception.getMessage(),
-					LocalDateTime.now()
-				);
-		
-		return ResponseEntity.badRequest().body(errorResponse);
-	}
-
 	@ExceptionHandler(RuntimeException.class)
 	public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException exception, WebRequest webRequest) {
 		ErrorResponse errorResponse = new ErrorResponse(
