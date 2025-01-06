@@ -1,6 +1,7 @@
 package com.andy.sapofnbcrawler.service;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ import com.andy.sapofnbcrawler.common.SapoConstants;
 import com.andy.sapofnbcrawler.common.SapoUtils;
 import com.andy.sapofnbcrawler.entity.Order;
 import com.andy.sapofnbcrawler.entity.OrderDetail;
-import com.andy.sapofnbcrawler.exception.OrderNotFoundException;
+import com.andy.sapofnbcrawler.exception.ResourceNotFoundException;
 import com.andy.sapofnbcrawler.repository.IOrderDetailRepository;
 import com.andy.sapofnbcrawler.repository.IOrderRepository;
 import com.andy.sapofnbcrawler.request.SummaryRequest;
@@ -36,13 +37,13 @@ public class AdminService {
     private final IOrderDetailRepository orderDetailRepository;
     
     
-    public Object summaryTodayOrder() {
+    public OrderResponse summaryTodayOrder() {
         SimpleDateFormat sdf    = new SimpleDateFormat("dd/MM/yyyy");
         Date             today  = new Date();
-        List<Order>      orders = orderRepository.getOrderByOrderDate(sdf.format(today));
-        if (orders.isEmpty()) {
-            throw new OrderNotFoundException("Hôm nay không có đơn nào được đặt!");
-        }
+        List<Order>      orders = orderRepository.getOrderByOrderDate(sdf.format(today))
+        		.orElseThrow(() -> new ResourceNotFoundException("Đơn hàng hôm nay", "ngày đặt đơn", sdf.format(today)))
+        		;
+        
         Map<String, Integer>    summaryDishes = new HashMap<>();
         Map<String, BigDecimal> summaryPrice  = new HashMap<>();
         for (Order order : orders) {
@@ -81,14 +82,13 @@ public class AdminService {
         return orderResponse;
     }
     
-    public Object summaryTodayOrderByMember() {
+    public List<OrderResponse> summaryTodayOrderByMember() {
         SimpleDateFormat sdf     = new SimpleDateFormat("dd/MM/yyyy");
-        SimpleDateFormat sdfTime = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+//        SimpleDateFormat sdfTime = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         Date             today   = new Date();
-        List<Order>      orders  = orderRepository.getOrdersByOrderDateOrderByCustomerName(sdf.format(today));
-        if (orders.isEmpty()) {
-            throw new OrderNotFoundException("Hôm nay không có đơn nào được đặt!");
-        }
+        List<Order>      orders  = orderRepository.getOrdersByOrderDateOrderByCustomerName(sdf.format(today))
+        		.orElseThrow(() -> new ResourceNotFoundException("Đơn hàng hôm nay", "ngày đặt đơn", sdf.format(today)))
+        		;
         
         List<OrderResponse> orderResponseList = new ArrayList<>();
         
@@ -107,15 +107,15 @@ public class AdminService {
             }
             OrderResponse.CustomerInfo customerInfo = new OrderResponse.CustomerInfo();
             customerInfo.setCustomerName(order.getCustomerName());
-            customerInfo.setPhone(order.getCustomerPhone());
+            customerInfo.setCustomerPhone(order.getCustomerPhone());
             orderResponse.setCustomerInfo(customerInfo);
             orderResponse.setTotalPrice(totalPrice);
             orderResponse.setDishes(dishResponseList);
             orderResponse.setPaymentMethodType(order.getPaymentMethodType());
             orderResponse.setPaymentMethodName(SapoUtils.getPayment(order.getPaymentMethodType()));
             orderResponse.setOrderDate(sdf.format(today));
-            orderResponse.setCreatedOn(sdfTime.format(order.getCreatedDate()));
-            orderResponse.setModifiedOn(sdfTime.format(order.getUpdateDate()));
+            orderResponse.setCreatedOn(Timestamp.valueOf(order.getCreatedDate()).getTime());
+            orderResponse.setModifiedOn(Timestamp.valueOf(order.getUpdateDate()).getTime());
             orderResponseList.add(orderResponse);
         }
         
@@ -123,7 +123,7 @@ public class AdminService {
         
     }
     
-    public Object summaryOrdersByTime(SummaryRequest request) throws ParseException {
+    public List<SummaryResponse> summaryOrdersByTime(SummaryRequest request) {
         
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         SimpleDateFormat sdfInput = new SimpleDateFormat("yyyy-MM-dd");
@@ -170,11 +170,9 @@ public class AdminService {
             }
             
             orderList = orderRepository.getOrderByOrderDateAndCustomerNameOrderByOrderDateAsc(
-                    request.getCustomerName(), day);
-            
-            if (orderList.isEmpty()) {
-            	throw new OrderNotFoundException("Hôm nay không có đơn nào được đặt!");
-            }
+                    request.getCustomerName(), day)
+            		.orElseThrow(() -> new ResourceNotFoundException("Đơn hàng hôm nay", "ngày đặt đơn", sdf.format(today)))
+            		;
             
             Map<String, List<Order>> summaryMap = new HashMap<>();
             List<Order> orderMappingList = new ArrayList<>();
@@ -206,7 +204,7 @@ public class AdminService {
             
             
         } catch (ParseException e) {
-        	throw new ParseException ("Parse date failed: " + e.getMessage(), 0);
+        	throw new RuntimeException("Date is parsing to format \"dd/MM/yyyy\" failed");
         } catch (RuntimeException e) {
         	throw new RuntimeException("Error occurred in summaryOrdersByTime: " + e.getMessage());
         }
@@ -218,11 +216,11 @@ public class AdminService {
         OrderResponse.CustomerInfo cusResponse = new OrderResponse.CustomerInfo();
         List<OrderResponse.DishResponse> dishes = new ArrayList<>();
 
-        orderResponse.setOrderSku(order.getId());
+        orderResponse.setOrderSku(order.getOrderCode());
         orderResponse.setTotalPrice(order.getTotalPrice());
         
         cusResponse.setCustomerName(order.getCustomerName());
-        cusResponse.setPhone(order.getCustomerPhone());
+        cusResponse.setCustomerPhone(order.getCustomerPhone());
         cusResponse.setCustomerEmail(order.getCustomerEmail());
         orderResponse.setCustomerInfo(cusResponse);
         

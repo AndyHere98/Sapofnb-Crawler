@@ -7,6 +7,8 @@ import java.util.List;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -24,7 +26,10 @@ import lombok.NoArgsConstructor;
 public class Order extends BaseEntity {
 	
 	@Id
-	private String id;
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+	@Column(nullable = false, length = 36, name = "order_code", unique = true, updatable = false)
+	private String orderCode;
 	@Column(nullable = false, length = 200)
 	private String customerName;
 	@Column(nullable = false, length = 20, unique = true)

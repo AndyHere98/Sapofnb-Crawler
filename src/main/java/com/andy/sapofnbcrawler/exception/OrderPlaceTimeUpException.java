@@ -1,14 +1,14 @@
 package com.andy.sapofnbcrawler.exception;
 
 
-public class DishNotFoundException extends RuntimeException {
+public class OrderPlaceTimeUpException extends RuntimeException {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public DishNotFoundException (String message) {
+	public OrderPlaceTimeUpException (String message) {
 		super(message);
 	}
 }

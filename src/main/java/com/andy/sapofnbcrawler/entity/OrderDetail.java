@@ -26,11 +26,11 @@ public class OrderDetail extends BaseEntity{
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	@ManyToOne
-	@JoinColumn(name = "order_id")
+	@JoinColumn(name = "order_id", referencedColumnName = "order_code")
 	private Order order;
 	@Column(nullable = false, length = 200)
 	private String dishName;
-	@Column(nullable = false, length = 200)
+	@Column(length = 200)
 	private String member;
 	@Column(nullable = false, length = 6)
 	private int quantity;

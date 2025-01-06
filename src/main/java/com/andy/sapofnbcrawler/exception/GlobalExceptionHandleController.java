@@ -18,12 +18,12 @@ public class GlobalExceptionHandleController {
 	public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException exception, WebRequest webRequest) {
 		ErrorResponse errorResponse = new ErrorResponse(
 					webRequest.getDescription(false),
-					HttpStatus.BAD_REQUEST,
+					HttpStatus.NOT_FOUND,
 					exception.getMessage(),
 					LocalDateTime.now()
 				);
 		
-		return ResponseEntity.badRequest().body(errorResponse);
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 	}
 	
 	@ExceptionHandler(OrderExistedException.class)

@@ -13,7 +13,6 @@ import org.springframework.web.client.RestTemplate;
 import com.andy.sapofnbcrawler.common.SapoConstants;
 import com.andy.sapofnbcrawler.common.SapoUtils;
 import com.andy.sapofnbcrawler.exception.ResourceNotFoundException;
-import com.andy.sapofnbcrawler.exception.ResponseNotFoundException;
 import com.andy.sapofnbcrawler.request.MenuRequest;
 import com.andy.sapofnbcrawler.response.MenuResponse;
 

@@ -7,19 +7,44 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+
+@Schema(
+	name = "Menu các món ăn trong ngày",
+	description = "Menu các món ăn trong ngày"
+)
 @Data
-@JsonRootName(value = "menu")
 public class MenuResponse {
 
+
+    @Schema(
+		description = "Tên menu dựa trên ngày trong tuần"
+	)
     private String name;
+
+    @Schema(
+		description = "Tổng hợp các món ăn"
+	)
     @JsonProperty("dishes")
     private List<DishResponse> dishes;
     
+    @Schema(
+		name = "Tổng hợp các món ăn",
+		description = "Tổng hợp các món ăn"
+	)
     @Data
     public static class DishResponse {
+
+    	@Schema(
+			description = "Tên món ăn"
+		)
         private String     name;
+
+    	@Schema(
+			description = "Giá món"
+		)
         private BigDecimal price;
     }
     

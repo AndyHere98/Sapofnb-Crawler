@@ -9,47 +9,123 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@Data
-@JsonRootName("menu")
+
+@Schema(
+	name = "Thông tin đơn hàng",
+	description = "Thông tin đơn hàng"
+)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
     "customerInfo", "orderSku", "status", "fullAddress", "note",
     "orderDate", "orderTime", "updatedOrderTime", "totalPrice", "paymentMethodType",
     "paymentMethodName", "dishes"
 })
+@Data
 public class OrderResponse {
     
+	@Schema(
+		description = "Mã đơn hàng"
+	)
     private String             orderSku;
+
+	@Schema(
+		description = "Ghi chú đến bếp"
+	)
     private String             note;
+
+	@Schema(
+		description = "Địa chỉ giao hàng"
+	)
     private String             fullAddress;
+	
+	@Schema(
+		description = "Trạng thái đơn hàng"
+	)
     private String             status;
+
+	@Schema(
+		description = "Thời gian đặt hàng"
+	)
     @JsonProperty("orderTime")
-    private String          createdOn;
+    private long          		createdOn;
+
+	@Schema(
+		description = "Thời gian đơn hàng cập nhật trạng thái lần cuối"
+	)
     @JsonProperty("updatedOrderTime")
-    private String          modifiedOn;
+    private long          		modifiedOn;
+
+	@Schema(
+		description = "Tổng giá trị đơn hàng"
+	)
     private String             orderDate;
+
+	@Schema(
+		description = "Tổng giá trị đơn hàng"
+	)
     private BigDecimal         totalPrice;
+
+	@Schema(
+		description = "Tổng hợp các món ăn"
+	)
     @JsonProperty("dishes")
     private List<DishResponse> dishes;
+
+	@Schema(
+		description = "Thông tin khách hàng"
+	)
     private CustomerInfo       customerInfo;
-    private String             paymentMethodType;
-    private String             paymentMethodName;
-    
+
+	@Schema(
+		description = "Hình thức thanh toán dạng code"
+	)
+    private String paymentMethodType;
+	
+	@Schema(
+		description = "Hình thức thanh toán dạng chữ"
+	)
+    private String paymentMethodName;
+
+	@Schema(
+		name = "Tổng hợp các món ăn",
+		description = "Tổng hợp các món ăn"
+	)
     @Data
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class DishResponse {
-        private String     dishName;
-        private int        quantity;
-        private BigDecimal price;
-        private String     member;
+    	@Schema(
+			description = "Tên món ăn"
+		)
+    	private String dishName;
+    	@Schema(
+			description = "Số lượng đã đặt"
+		)
+    	private int quantity;
+    	@Schema(
+			description = "Giá món"
+		)
+    	private BigDecimal price;
     }
     
+	@Schema(
+		name = "Thông tin khách hàng",
+		description = "Thông tin khách hàng"
+	)
     @Data
     public static class CustomerInfo {
-        private String customerName;
-        private String phone;
+		@Schema(
+			description = "Tên khách hàng"
+		)
+    	private String customerName;
+		@Schema(
+			description = "Số điện thoại khách hàng"
+		)
+        private String customerPhone;
+		@Schema(
+			description = "Thông tin email khách hàng"
+		)
         private String customerEmail;
     }
 }

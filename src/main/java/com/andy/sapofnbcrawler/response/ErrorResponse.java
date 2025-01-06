@@ -9,8 +9,14 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+
+@Schema(
+	name = "Error response",
+	description = "Response phản hồi khi xảy ra lỗi"
+)
 @Data
 @JsonRootName("response")
 @JsonInclude(Include.NON_NULL)
@@ -22,12 +28,28 @@ public class ErrorResponse {
 		this.errorMessage = errorMessage;
 		this.errorTime = errorTime;
 	}
+	
+	@Schema(
+		description = "Địa chỉ url đang lỗi"
+	)
 	@JsonProperty("apiPath")
 	private String apiPath;
+	
+	@Schema(
+		description = "HTTP status code"
+	)
 	@JsonProperty("errorStatus")
 	private HttpStatus errorStatus;
+	
+	@Schema(
+		description = "Thông tin lỗi"
+	)
 	@JsonProperty("errorMessage")
 	private String errorMessage;
+	
+	@Schema(
+		description = "Thời gian xuất hiện lỗi"
+	)
 	@JsonProperty("errorTime")
 	private LocalDateTime errorTime;
 }

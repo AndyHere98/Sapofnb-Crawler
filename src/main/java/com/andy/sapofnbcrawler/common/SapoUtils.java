@@ -10,14 +10,16 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.stereotype.Component;
 
+import com.andy.sapofnbcrawler.exception.OrderPlaceTimeUpException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@Component
 @PropertySource("classpath:application.properties")
 public class SapoUtils {
+	
+	private SapoUtils() {}
+	
 	@Value("${sapo.order-time}")
 	private static String timeUp;
 
@@ -49,16 +51,29 @@ public class SapoUtils {
 		return paymentMap.get(type);
 	}
 	
-	public static Object checkingTimeUp () {
-
+	public static boolean checkingTimeUp () {
 		Date currentDate = new Date();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         try {
             Date timeup = sdf.parse(sdf.format(currentDate).substring(0,10) + " " + timeUp);
-            if (currentDate.after(timeup)) return "Không thể thao tác đơn hàng sau 9h30 AM";
+            if (currentDate.after(timeup)) 
+            	throw new OrderPlaceTimeUpException("Không thể thao tác đơn hàng sau " + timeUp);
         } catch (ParseException e) {
-            return sdf.format(currentDate).substring(0,10) + " " + timeUp;
+            throw new RuntimeException(sdf.format(currentDate).substring(0,10) + " " + timeUp);
         }
         return true;
+	}
+	
+	public static Date parseDate (String format, Date date) {
+		SimpleDateFormat sdf = new SimpleDateFormat(format);
+		
+		try {
+			
+			date = sdf.parse(sdf.format(date));
+		} catch (ParseException exception) {
+			throw new RuntimeException("Date " + date.toString() + " parse to format " + format + " failed");
+		}
+		
+		return date;
 	}
 }

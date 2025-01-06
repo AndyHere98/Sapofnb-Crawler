@@ -2,6 +2,7 @@ package com.andy.sapofnbcrawler.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import com.andy.sapofnbcrawler.common.SapoConstants;
 import com.andy.sapofnbcrawler.common.SapoUtils;
 import com.andy.sapofnbcrawler.entity.Order;
 import com.andy.sapofnbcrawler.entity.OrderDetail;
+import com.andy.sapofnbcrawler.exception.ResourceNotFoundException;
 import com.andy.sapofnbcrawler.repository.IOrderDetailRepository;
 import com.andy.sapofnbcrawler.repository.IOrderRepository;
 import com.andy.sapofnbcrawler.request.MemberOrderRequest;
@@ -57,7 +59,7 @@ public class OrderService {
     @Value("${sapo-mode}")
     private static String mode;
 	
-    public Object getCartOrder() throws Exception {
+    public OrderResponse getCartOrder() throws Exception {
         RestTemplate restTemplate = new RestTemplate();
         
         StringBuilder sUrl = new StringBuilder();
@@ -72,8 +74,9 @@ public class OrderService {
         
         UriComponents urlBuilder = UriComponentsBuilder.fromUriString(sUrl.toString()).query(queryParam)
                                                        .buildAndExpand(queryParamMap);
-        
-        HttpHeaders httpHeaders = restTemplate.headForHeaders(urlBuilder.toString());
+        String cartUrl = urlBuilder.toString();
+        System.out.println("Cart Check url: " + cartUrl);
+        HttpHeaders httpHeaders = restTemplate.headForHeaders(cartUrl);
         httpHeaders.add("Cookie", COOKIE);
         
         HttpEntity<String> httpEntity = new HttpEntity<>("Andy", httpHeaders);
@@ -83,11 +86,19 @@ public class OrderService {
         
         String json = SapoUtils.getJsonData(response.getBody());
         if (json.isEmpty())
-			throw new Exception("There is no response received " + response.getBody());
-        
+        	throw new ResourceNotFoundException("Dữ liệu phản hồi", "khi lấy thông tin menu", null);
+		
         OrderRequest  orderRequest  = (OrderRequest) SapoUtils.convertJsonToObject(json, OrderRequest.class);
         
-        return mappingOrderResponse(orderRequest);
+        Date today = SapoUtils.parseDate("yyyy-MM-dd", new Date());
+        // Response in order created date is Timestamp in second -> convert to Timestamp in millisecond
+        Date date = new Date(orderRequest.getCreatedOn() * 1000);
+        Date createdDate = SapoUtils.parseDate("yyyy-MM-dd", date);
+        
+        if (today.getTime() == (createdDate.getTime())) return mappingOrderResponse(orderRequest);
+        
+        throw new ResourceNotFoundException("Thông tin giỏ hàng hôm nay", "ngày truy xuất", today.toString());
+        
     }
     
     private OrderResponse mappingOrderResponse(OrderRequest orderRequest) {
@@ -113,13 +124,10 @@ public class OrderService {
     }
     
     @Transactional(value = TxType.REQUIRES_NEW, rollbackOn = Exception.class)
-    public Object placeOrder(MemberOrderRequest request) throws Exception {
+    public boolean placeOrder(MemberOrderRequest request) {
     	
     	if (SapoConstants.APP_MODE_PRODUCTION.equalsIgnoreCase(mode)) {
-			Object rtnObject = SapoUtils.checkingTimeUp();
-			if (!rtnObject.getClass().isInstance(Boolean.class)) {
-				return rtnObject;
-			}
+			return SapoUtils.checkingTimeUp();
     	}
     	
         // Checking member has been order today or not
@@ -127,9 +135,7 @@ public class OrderService {
         OrderValidation.isOrderFinal(orderCheck, request.getCustomerName());
         
         Order order = mappingToOrder(request);
-        order.setId(UUID.randomUUID().toString());
-//        order.setCreatedBy(request.getCustomerName());
-//        order.setCreatedDate(LocalDateTime.now());
+        order.setOrderCode(UUID.randomUUID().toString());
         order.setOrderDate(LocalDateTime.now());
         List<OrderDetail> orderDetails = request.getDishes().stream().map(this::mappingToOrderDetail).collect(
                 Collectors.toList());
@@ -149,7 +155,8 @@ public class OrderService {
         
         order.setOrderDetails(orderDetails);
         
-        return mappingOrderToMemberOrderResponse(order);
+        return true;
+//        return mappingOrderToMemberOrderResponse(order);
     }
     
     private MemberOrderResponse mappingOrderToMemberOrderResponse(Order order) {
@@ -157,7 +164,7 @@ public class OrderService {
         MemberOrderResponse.CustomerInfo cusResponse = new MemberOrderResponse.CustomerInfo();
         List<MemberOrderResponse.DishResponse> dishes = new ArrayList<>();
         
-        orderResponse.setOrderSku(order.getId());
+        orderResponse.setOrderSku(order.getOrderCode());
         orderResponse.setPaymentMethodType(order.getPaymentMethodType());
         orderResponse.setPaymentMethodName(SapoUtils.getPayment(order.getPaymentMethodType()));
         orderResponse.setCreatedOn(order.getCreatedDate());
@@ -197,17 +204,15 @@ public class OrderService {
     }
     
     @Transactional(value = TxType.REQUIRES_NEW, rollbackOn = Exception.class)
-    public Object editOrder(String id, MemberOrderRequest request) throws Exception {
+    public boolean editOrder(String orderCode, MemberOrderRequest request) {
         
     	if (SapoConstants.APP_MODE_PRODUCTION.equalsIgnoreCase(mode)) {
-			Object rtnObject = SapoUtils.checkingTimeUp();
-			if (!rtnObject.getClass().isInstance(Boolean.class)) {
-				return rtnObject;
-			}
+			return SapoUtils.checkingTimeUp();
     	}
         
-        Optional<Order> optionalOrder = orderRepository.findById(id);
-        Order order = OrderValidation.isValidOrder(optionalOrder, id);
+        Order order = orderRepository.findByOrderCode(orderCode).orElseThrow(
+        			() -> new ResourceNotFoundException("Đơn đặt hàng", "mã đơn", orderCode)
+        		);
         
         List<OrderDetail> orderDetails = request.getDishes().stream().map(this::mappingToOrderDetail).collect(
                 Collectors.toList());
@@ -224,14 +229,16 @@ public class OrderService {
         orderDetailRepository.saveAll(orderDetails);
         orderRepository.save(order);
         
-        order.setOrderDetails(orderDetails);
+//        order.setOrderDetails(orderDetails);
         
-        return mappingOrderToMemberOrderResponse(order);
+//        return mappingOrderToMemberOrderResponse(order);
+        return true;
     }
     
-    public Object getOrderById(String id) throws Exception {
-        Optional<Order> optionalOrder = orderRepository.findById(id);
-        Order order = OrderValidation.isValidOrder(optionalOrder, id);
+    public MemberOrderResponse getOrderById(String orderCode) {
+        Order order = orderRepository.findByOrderCode(orderCode).orElseThrow(
+    			() -> new ResourceNotFoundException("Đơn đặt hàng", "mã đơn", orderCode)
+    		);
         
         List<OrderDetail> orderDetails = orderDetailRepository.findAllByOrder(order);
         order.setOrderDetails(orderDetails);
@@ -239,24 +246,23 @@ public class OrderService {
     }
     
     @Transactional(value = TxType.REQUIRES_NEW, rollbackOn = Exception.class)
-    public Object deleteOrder(String id) throws Exception {
+    public boolean deleteOrder(String orderCode) {
 
     	if (SapoConstants.APP_MODE_PRODUCTION.equalsIgnoreCase(mode)) {
-			Object rtnObject = SapoUtils.checkingTimeUp();
-			if (!rtnObject.getClass().isInstance(Boolean.class)) {
-				return rtnObject;
-			}
+			return SapoUtils.checkingTimeUp();
     	}
         
-        Optional<Order> optionalOrder = orderRepository.findById(id);
-        Order order = OrderValidation.isValidOrder(optionalOrder, id);
+        Order order = orderRepository.findByOrderCode(orderCode).orElseThrow(
+    			() -> new ResourceNotFoundException("Đơn đặt hàng", "mã đơn", orderCode)
+    		);
         orderDetailRepository.deleteOrderDetailByOrder(order);
-        orderRepository.delete(order);
+        orderRepository.deleteById(order.getId());
+        return true;
         
-        OrderResponse orderResponse = new OrderResponse();
-        orderResponse.setOrderSku(order.getId());
-        orderResponse.setTotalPrice(order.getTotalPrice());
-        return orderResponse;
+//        OrderResponse orderResponse = new OrderResponse();
+//        orderResponse.setOrderSku(order.getOrderCode());
+//        orderResponse.setTotalPrice(order.getTotalPrice());
+//        return orderResponse;
     }
     
 }
