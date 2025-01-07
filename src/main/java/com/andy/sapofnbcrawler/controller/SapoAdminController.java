@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,6 +22,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @Tag(
@@ -30,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping(path = "${sapo-api.version}/admin", produces = {MediaType.APPLICATION_JSON_VALUE})
 @RequiredArgsConstructor
+@Validated
 public class SapoAdminController {
     
     private final AdminService adminService;
@@ -93,7 +96,7 @@ public class SapoAdminController {
     		)
         })
     @GetMapping("/summary")
-    public ResponseEntity<List<SummaryResponse>> summaryOrdersByTime(@RequestBody SummaryRequest request) {
+    public ResponseEntity<List<SummaryResponse>> summaryOrdersByTime(@Valid @RequestBody SummaryRequest request) {
     	List<SummaryResponse> orderList = adminService.summaryOrdersByTime(request);
 		return ResponseEntity.ok(orderList);
     }

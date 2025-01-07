@@ -32,9 +32,9 @@ public class OrderDetail extends BaseEntity{
 	private String dishName;
 	@Column(length = 200)
 	private String member;
-	@Column(nullable = false, length = 6)
+	@Column(nullable = false, length = 2)
 	private int quantity;
-	@Column(nullable = false, length = 7)
+	@Column(nullable = false, length = 5)
 	private BigDecimal price;
 	@Column(nullable = false)
     private LocalDateTime orderDate;

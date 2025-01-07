@@ -6,18 +6,15 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 import io.swagger.v3.oas.annotations.ExternalDocumentation;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.info.Info;
 
-@OpenAPIDefinition(
-	externalDocs = @ExternalDocumentation(
-			)
-)
+@OpenAPIDefinition(info = @Info(title = "Sapofnb Crawler", description = "Thông tin đặt cơm trưa TSB đến SAPO", version = "v1"), externalDocs = @ExternalDocumentation(description = "No document"))
 @SpringBootApplication
 @EnableJpaAuditing(auditorAwareRef = "auditAware")
 public class SapofnbCrawlerApplication {
-    
-    public static void main(String[] args) {
-        SpringApplication.run(SapofnbCrawlerApplication.class, args);
-    }
-    
+
+	public static void main(String[] args) {
+		SpringApplication.run(SapofnbCrawlerApplication.class, args);
+	}
+
 }

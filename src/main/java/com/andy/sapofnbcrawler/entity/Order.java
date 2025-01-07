@@ -38,7 +38,7 @@ public class Order extends BaseEntity {
     private String customerEmail;
 	@Column(nullable = false, length = 7)
     private BigDecimal totalPrice;
-	@Column(nullable = false, length = 20)
+	@Column(nullable = false, length = 10)
     private String paymentMethodType;
 	@Column(nullable = false, length = 1, columnDefinition = "NUMBER(1,0) DEFAULT 0")
     private int isPaid;

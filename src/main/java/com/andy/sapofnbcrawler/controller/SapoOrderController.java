@@ -25,6 +25,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 
 
@@ -50,12 +53,12 @@ public class SapoOrderController {
 				schema = @Schema(implementation = OrderResponse.class)
 			)
 		),
-    	@ApiResponse(
-    		responseCode = "417", description = "Thông tin đơn hàng nhận về không như dự kiến, hãy liên lạc dev để check kỹ hơn",
-			content = @Content(
-				schema = @Schema(implementation = CommonResponse.class)
-			)
-		),
+//    	@ApiResponse(
+//    		responseCode = "417", description = "Thông tin đơn hàng nhận về không như dự kiến, hãy liên lạc dev để check kỹ hơn",
+//			content = @Content(
+//				schema = @Schema(implementation = CommonResponse.class)
+//			)
+//		),
     	@ApiResponse(
     		responseCode = "500", description = "Lấy thông tin đơn hàng không thành công, liên hệ với dev",
     		content = @Content(
@@ -64,17 +67,10 @@ public class SapoOrderController {
 		)
     })
     @GetMapping("/cart")
-    public ResponseEntity<?> getCartOrder() {
+    public ResponseEntity<OrderResponse> getCartOrder() {
     	OrderResponse cartOrder = new OrderResponse();
-    	CommonResponse commonResponse = new CommonResponse();
-    	try {
-    		cartOrder = orderService.getCartOrder();
-    		return ResponseEntity.ok(cartOrder);
-		} catch (Exception e) {
-    		commonResponse.setStatus(HttpStatus.EXPECTATION_FAILED);
-    		commonResponse.setMessage("Truy xuất thông tin giỏ hàng đang lỗi: " + e.getMessage());
-    		return ResponseEntity.internalServerError().body(commonResponse);
-		}
+		cartOrder = orderService.getCartOrder();
+		return ResponseEntity.ok(cartOrder);
     }
     
     
@@ -102,7 +98,7 @@ public class SapoOrderController {
 		)
     })
     @PostMapping("/place")
-    public ResponseEntity<?> placeOrder(@RequestBody MemberOrderRequest request) {
+    public ResponseEntity<?> placeOrder(@Valid @RequestBody MemberOrderRequest request) {
     	boolean isCreated = orderService.placeOrder(request);
     	CommonResponse commonResponse = new CommonResponse();
     	
@@ -141,7 +137,12 @@ public class SapoOrderController {
 		)
     })
     @PutMapping("/{orderCode}")
-    public ResponseEntity<CommonResponse> editOrder(@PathVariable("orderCode") String orderCode, @RequestBody MemberOrderRequest request) {
+    public ResponseEntity<CommonResponse> editOrder(
+    		@NotBlank(message = "Mã đơn hàng không thể trống")
+    		@Size(max = 36)
+    		@PathVariable("orderCode") String orderCode,
+    		@Valid
+    		@RequestBody MemberOrderRequest request) {
     	CommonResponse commonResponse = new CommonResponse();
     	
     	boolean isUpdated = orderService.editOrder(orderCode, request);
@@ -175,7 +176,10 @@ public class SapoOrderController {
 		)
     })
     @GetMapping("/{orderCode}")
-    public ResponseEntity<MemberOrderResponse> getOrderByOrderCode(@PathVariable("orderCode") String orderCode) {
+    public ResponseEntity<MemberOrderResponse> getOrderByOrderCode(
+    		@NotBlank(message = "Mã đơn hàng không thể trống")
+    		@Size(max = 36)
+    		@PathVariable("orderCode") String orderCode) {
     	MemberOrderResponse order = new MemberOrderResponse();
 		order = orderService.getOrderById(orderCode);
 		return ResponseEntity.ok(order);
@@ -206,7 +210,10 @@ public class SapoOrderController {
 		)
     })
     @DeleteMapping("/{orderCode}")
-    public ResponseEntity<CommonResponse> deleteOrder(@PathVariable("orderCode") String orderCode) {
+    public ResponseEntity<CommonResponse> deleteOrder(
+    		@NotBlank(message = "Mã đơn hàng không thể trống")
+    		@Size(max = 36)
+    		@PathVariable("orderCode") String orderCode) {
 		CommonResponse commonResponse = new CommonResponse();
 		
 		boolean isDeleted = orderService.deleteOrder(orderCode);

@@ -2,6 +2,7 @@ package com.andy.sapofnbcrawler.controller;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping(path = "${sapo-api.version}", produces = {MediaType.APPLICATION_JSON_VALUE})
 @RequiredArgsConstructor
+@Validated
 public class SapoMenuController {
     
     private final MenuService menuService;

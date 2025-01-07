@@ -1,5 +1,6 @@
 package com.andy.sapofnbcrawler.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
@@ -59,7 +60,7 @@ public class OrderService {
     @Value("${sapo-mode}")
     private static String mode;
 	
-    public OrderResponse getCartOrder() throws Exception {
+    public OrderResponse getCartOrder() {
         RestTemplate restTemplate = new RestTemplate();
         
         StringBuilder sUrl = new StringBuilder();
@@ -128,6 +129,16 @@ public class OrderService {
     	
     	if (SapoConstants.APP_MODE_PRODUCTION.equalsIgnoreCase(mode)) {
 			return SapoUtils.checkingTimeUp();
+    	}
+    	
+    	// Valid information from order
+    	BigDecimal totalPrice = request.getTotalPrice();
+    	BigDecimal sumPriceDishes = request.getDishes().stream().map(dish -> dish.getPrice().multiply(new BigDecimal(dish.getQuantity()))).reduce(BigDecimal.ZERO,  BigDecimal::add);
+    	
+    	System.out.println("totalPrice " + totalPrice + " sumPriceDishes " + sumPriceDishes);
+    	
+    	if (totalPrice.compareTo(sumPriceDishes) != 0) {
+    		throw new RuntimeException("Tổng giá trị đơn hàng: " + totalPrice + " và tổng giá thành dựa trên món ăn đăng ký: " + sumPriceDishes + " không khớp nhau. Vui lòng kiểm tra lại!");
     	}
     	
         // Checking member has been order today or not
@@ -208,6 +219,16 @@ public class OrderService {
         
     	if (SapoConstants.APP_MODE_PRODUCTION.equalsIgnoreCase(mode)) {
 			return SapoUtils.checkingTimeUp();
+    	}
+
+    	// Valid information from order
+    	BigDecimal totalPrice = request.getTotalPrice();
+    	BigDecimal sumPriceDishes = request.getDishes().stream().map(dish -> dish.getPrice().multiply(new BigDecimal(dish.getQuantity()))).reduce(BigDecimal.ZERO,  BigDecimal::add);
+    	
+    	System.out.println("totalPrice " + totalPrice + " sumPriceDishes " + sumPriceDishes);
+    	
+    	if (totalPrice.compareTo(sumPriceDishes) != 0) {
+    		throw new RuntimeException("Tổng giá trị đơn hàng: " + totalPrice + " và tổng giá thành dựa trên món ăn đăng ký: " + sumPriceDishes + " không khớp nhau. Vui lòng kiểm tra lại!");
     	}
         
         Order order = orderRepository.findByOrderCode(orderCode).orElseThrow(
