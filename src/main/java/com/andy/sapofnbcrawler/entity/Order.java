@@ -1,7 +1,7 @@
 package com.andy.sapofnbcrawler.entity;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.sql.Date;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
@@ -28,21 +28,23 @@ public class Order extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	@Column(nullable = false, length = 36, name = "order_code", unique = true, updatable = false)
-	private String orderCode;
-	@Column(nullable = false, length = 200)
+	@Column(nullable = false, length = 36, name = "order_sku", unique = true, updatable = false)
+	private String orderSku;
+	@Column(nullable = false, length = 100)
 	private String customerName;
-	@Column(nullable = false, length = 20, unique = true)
+	@Column(nullable = false, length = 20)
     private String customerPhone;
-	@Column(nullable = false, length = 200, unique = true)
+	@Column(nullable = false, length = 100)
     private String customerEmail;
-	@Column(nullable = false, length = 7)
+	@Column(length = 200)
+    private String address;
+	@Column(nullable = false)
     private BigDecimal totalPrice;
 	@Column(nullable = false, length = 10)
     private String paymentMethodType;
 	@Column(nullable = false, length = 1, columnDefinition = "NUMBER(1,0) DEFAULT 0")
     private int isPaid;
-    private LocalDateTime orderDate;
+    private Date orderDate;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "order", orphanRemoval = true)
     private List<OrderDetail> orderDetails;
 }

@@ -1,32 +1,20 @@
 package com.andy.sapofnbcrawler.service;
 
-import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
 
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
-import com.andy.sapofnbcrawler.common.SapoConstants;
-import com.andy.sapofnbcrawler.common.SapoUtils;
+import com.andy.sapofnbcrawler.dto.MemberOrderDto;
+import com.andy.sapofnbcrawler.dto.OrderDto;
 import com.andy.sapofnbcrawler.entity.Order;
-import com.andy.sapofnbcrawler.entity.OrderDetail;
 import com.andy.sapofnbcrawler.exception.ResourceNotFoundException;
+import com.andy.sapofnbcrawler.mapper.OrderMapper;
 import com.andy.sapofnbcrawler.repository.IOrderDetailRepository;
 import com.andy.sapofnbcrawler.repository.IOrderRepository;
-import com.andy.sapofnbcrawler.request.SummaryRequest;
-import com.andy.sapofnbcrawler.response.OrderResponse;
-import com.andy.sapofnbcrawler.response.SummaryResponse;
 
-import hirondelle.date4j.DateTime;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -37,92 +25,31 @@ public class AdminService {
     private final IOrderDetailRepository orderDetailRepository;
     
     
-    public OrderResponse summaryTodayOrder() {
+    public List<OrderDto> summaryTodayOrder() {
         SimpleDateFormat sdf    = new SimpleDateFormat("dd/MM/yyyy");
         Date             today  = new Date();
         List<Order>      orders = orderRepository.getOrderByOrderDate(sdf.format(today))
         		.orElseThrow(() -> new ResourceNotFoundException("Đơn hàng hôm nay", "ngày đặt đơn", sdf.format(today)))
         		;
         
-        Map<String, Integer>    summaryDishes = new HashMap<>();
-        Map<String, BigDecimal> summaryPrice  = new HashMap<>();
-        for (Order order : orders) {
-            orderDetailRepository.findAllByOrder(order).forEach(orderDetail -> {
-                summaryDishes.put(orderDetail.getDishName(),
-                                  summaryDishes.get(orderDetail.getDishName()) == null ? orderDetail.getQuantity() :
-                                  summaryDishes.get(orderDetail.getDishName()) +
-                                  orderDetail.getQuantity());
-                summaryPrice.put(orderDetail.getDishName(), orderDetail.getPrice()
-                                                                       .multiply(BigDecimal.valueOf(summaryDishes.get(
-                                                                               orderDetail.getDishName()))));
-                System.out.println("-------------------Start----------------");
-                System.out.println("Món: " + orderDetail.getDishName());
-                System.out.println("Số lương : " + summaryDishes.get(orderDetail.getDishName()));
-                System.out.println("Giá: " + orderDetail.getPrice());
-                System.out.println("-------------------End----------------");
-            });
-        }
-        System.out.println(summaryDishes);
-        System.out.println(summaryPrice);
-        OrderResponse                    orderResponse = new OrderResponse();
-        List<OrderResponse.DishResponse> dishes        = new ArrayList<>();
-        
-        for (Map.Entry<String, Integer> dishItem : summaryDishes.entrySet()) {
-            OrderResponse.DishResponse dish = new OrderResponse.DishResponse();
-            dish.setDishName(dishItem.getKey());
-            dish.setQuantity(dishItem.getValue());
-            dish.setPrice(summaryPrice.get(dishItem.getKey()));
-            dishes.add(dish);
-        }
-        orderResponse.setDishes(dishes);
-        orderResponse.setOrderDate(sdf.format(today));
-        orderResponse.setTotalPrice(
-                BigDecimal.valueOf(summaryPrice.values().stream().mapToDouble(BigDecimal::doubleValue).sum()));
-        
-        return orderResponse;
+        List<OrderDto> orderDtoList = OrderMapper.mappingAdminSummaryOrder(orders, new ArrayList<OrderDto>());
+        return orderDtoList;
     }
     
-    public List<OrderResponse> summaryTodayOrderByMember() {
+    public List<MemberOrderDto> summaryTodayOrderByMember(OrderDto orderDto) {
         SimpleDateFormat sdf     = new SimpleDateFormat("dd/MM/yyyy");
 //        SimpleDateFormat sdfTime = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         Date             today   = new Date();
-        List<Order>      orders  = orderRepository.getOrdersByOrderDateOrderByCustomerName(sdf.format(today))
-        		.orElseThrow(() -> new ResourceNotFoundException("Đơn hàng hôm nay", "ngày đặt đơn", sdf.format(today)))
+        List<Order>      orders  = orderRepository.getOrdersFromDateToToDate(orderDto)
+        		.orElseThrow(() -> new ResourceNotFoundException("Danh sách đơn đặt hàng", "ngày đặt ", String.format(" từ %s đến %s", orderDto.getFromDate(), orderDto.getToDate())))
         		;
         
-        List<OrderResponse> orderResponseList = new ArrayList<>();
+        List<MemberOrderDto> memberOrderDtoList = OrderMapper.mappingMemberSummaryOrder(orders, new ArrayList<>());
         
-        for (Order order : orders) {
-            OrderResponse                    orderResponse    = new OrderResponse();
-            List<OrderResponse.DishResponse> dishResponseList = new ArrayList<>();
-            
-            BigDecimal        totalPrice      = BigDecimal.ZERO;
-            List<OrderDetail> orderDetailList = orderDetailRepository.findAllByOrder(order);
-            for (OrderDetail orderDetail : orderDetailList) {
-                OrderResponse.DishResponse dishResponse = new OrderResponse.DishResponse();
-                BeanUtils.copyProperties(orderDetail, dishResponse);
-                dishResponse.setPrice(orderDetail.getPrice().multiply(BigDecimal.valueOf(orderDetail.getQuantity())));
-                totalPrice = totalPrice.add(dishResponse.getPrice());
-                dishResponseList.add(dishResponse);
-            }
-            OrderResponse.CustomerInfo customerInfo = new OrderResponse.CustomerInfo();
-            customerInfo.setCustomerName(order.getCustomerName());
-            customerInfo.setCustomerPhone(order.getCustomerPhone());
-            orderResponse.setCustomerInfo(customerInfo);
-            orderResponse.setTotalPrice(totalPrice);
-            orderResponse.setDishes(dishResponseList);
-            orderResponse.setPaymentMethodType(order.getPaymentMethodType());
-            orderResponse.setPaymentMethodName(SapoUtils.getPayment(order.getPaymentMethodType()));
-            orderResponse.setOrderDate(sdf.format(today));
-            orderResponse.setCreatedOn(Timestamp.valueOf(order.getCreatedDate()).getTime());
-            orderResponse.setModifiedOn(Timestamp.valueOf(order.getUpdateDate()).getTime());
-            orderResponseList.add(orderResponse);
-        }
-        
-        return orderResponseList;
-        
+        return memberOrderDtoList;
     }
     
+    /*
     public List<SummaryResponse> summaryOrdersByTime(SummaryRequest request) {
         
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
@@ -134,7 +61,7 @@ public class AdminService {
         String day = "";
         
         List<Order> orderList = new ArrayList<>();
-        List<OrderResponse> orderResponses = new ArrayList<>();
+        List<OrderDto> orderResponses = new ArrayList<>();
         List<SummaryResponse> rtnList = new ArrayList<>();
         
         try {
@@ -211,28 +138,35 @@ public class AdminService {
         return rtnList;
     }
     
-    private OrderResponse mappingOrderToOrderResponse(Order order) {
-        OrderResponse orderResponse = new OrderResponse();
-        OrderResponse.CustomerInfo cusResponse = new OrderResponse.CustomerInfo();
-        List<OrderResponse.DishResponse> dishes = new ArrayList<>();
+    private OrderDto mappingOrderToOrderResponse(Order order) {
+        OrderDto orderResponse = new OrderDto();
+        List<OrderDetailDto> dishes = new ArrayList<>();
 
-        orderResponse.setOrderSku(order.getOrderCode());
+        orderResponse.setOrderSku(order.getOrderSku());
         orderResponse.setTotalPrice(order.getTotalPrice());
         
-        cusResponse.setCustomerName(order.getCustomerName());
-        cusResponse.setCustomerPhone(order.getCustomerPhone());
-        cusResponse.setCustomerEmail(order.getCustomerEmail());
-        orderResponse.setCustomerInfo(cusResponse);
+        orderResponse.setCustomerName(order.getCustomerName());
+        orderResponse.setCustomerPhone(order.getCustomerPhone());
+        orderResponse.setCustomerEmail(order.getCustomerEmail());
         
         dishes = order.getOrderDetails().stream().map(detail -> {
-        	OrderResponse.DishResponse dish = new OrderResponse.DishResponse();
-            dish.setDishName(detail.getDishName());
+        	OrderDetailDto dish = new OrderDetailDto();
+            dish.setName(detail.getName());
             dish.setQuantity(detail.getQuantity());
             dish.setPrice(detail.getPrice());
             return dish;
         }).toList();
-        orderResponse.setDishes(dishes);
+        orderResponse.setOrderDetails(dishes);
         
         return orderResponse;
     }
+    */
+
+	public List<OrderDto> summaryOrders(OrderDto orderDto) {
+
+		List<Order> orderList = orderRepository.getOrdersFromDateToToDate(orderDto)
+				.orElseThrow(() -> new ResourceNotFoundException("Danh sách đơn đặt hàng", "ngày đặt ", String.format(" từ %s đến %s", orderDto.getFromDate(), orderDto.getToDate())));
+		
+		return OrderMapper.mappingAdminSummaryOrder(orderList, new ArrayList<OrderDto>());
+	}
 }

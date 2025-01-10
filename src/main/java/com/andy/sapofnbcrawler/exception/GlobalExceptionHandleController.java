@@ -2,17 +2,19 @@ package com.andy.sapofnbcrawler.exception;
 
 import java.text.ParseException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.ObjectError;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
-import com.andy.sapofnbcrawler.response.ErrorResponse;
+import com.andy.sapofnbcrawler.dto.ErrorResponseDto;
+import com.andy.sapofnbcrawler.dto.ErrorResponseDto.ErrorData;
 
 
 @RestControllerAdvice
@@ -20,27 +22,38 @@ public class GlobalExceptionHandleController {
 	
 	
 	@ExceptionHandler(MethodArgumentNotValidException.class)
-	public ResponseEntity<ErrorResponse> handleValidationOnRequest(MethodArgumentNotValidException exception, WebRequest webRequest) { 
-		List<ObjectError> errorList = exception.getAllErrors();
+	public ResponseEntity<ErrorResponseDto> handleValidationOnRequest(MethodArgumentNotValidException exception, WebRequest webRequest) { 
+		List<FieldError> errorList = exception.getFieldErrors();
 		StringBuilder errorStrBuilder = new StringBuilder();
+		
+		ErrorResponseDto.ErrorData errorData = new ErrorData();
+		List<ErrorData> errorDataList = new ArrayList<>();
+		
 		errorStrBuilder.append("Dữ liệu không hợp lệ vì ");
-		for (ObjectError error : errorList) {
+		for (FieldError error : errorList) {
+			
+			errorData = new ErrorData();
+			errorData.setErrorName(error.getField());
+			errorData.setErrorDesc(error.getDefaultMessage());
+			errorDataList.add(errorData);
+			
 			errorStrBuilder.append(error.getDefaultMessage() + " ");
 		}
 		
-		ErrorResponse errorResponse = new ErrorResponse(
+		ErrorResponseDto errorResponse = new ErrorResponseDto(
 				webRequest.getDescription(false),
 				HttpStatus.BAD_REQUEST,
 				errorStrBuilder.toString(),
 				LocalDateTime.now()
 			);
+		errorResponse.setErrorDataList(errorDataList);
 	
 	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 	}
 
 	@ExceptionHandler(ResourceNotFoundException.class)
-	public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException exception, WebRequest webRequest) {
-		ErrorResponse errorResponse = new ErrorResponse(
+	public ResponseEntity<ErrorResponseDto> handleResourceNotFoundException(ResourceNotFoundException exception, WebRequest webRequest) {
+		ErrorResponseDto errorResponse = new ErrorResponseDto(
 					webRequest.getDescription(false),
 					HttpStatus.NOT_FOUND,
 					exception.getMessage(),
@@ -51,8 +64,8 @@ public class GlobalExceptionHandleController {
 	}
 	
 	@ExceptionHandler(OrderExistedException.class)
-	public ResponseEntity<ErrorResponse> handleOrderExistedException(OrderExistedException exception, WebRequest webRequest) {
-		ErrorResponse errorResponse = new ErrorResponse(
+	public ResponseEntity<ErrorResponseDto> handleOrderExistedException(OrderExistedException exception, WebRequest webRequest) {
+		ErrorResponseDto errorResponse = new ErrorResponseDto(
 					webRequest.getDescription(false),
 					HttpStatus.BAD_REQUEST,
 					exception.getMessage(),
@@ -63,8 +76,8 @@ public class GlobalExceptionHandleController {
 	}
 	
 	@ExceptionHandler(RuntimeException.class)
-	public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException exception, WebRequest webRequest) {
-		ErrorResponse errorResponse = new ErrorResponse(
+	public ResponseEntity<ErrorResponseDto> handleRuntimeException(RuntimeException exception, WebRequest webRequest) {
+		ErrorResponseDto errorResponse = new ErrorResponseDto(
 					webRequest.getDescription(false),
 					HttpStatus.BAD_REQUEST,
 					exception.getMessage(),
@@ -76,8 +89,8 @@ public class GlobalExceptionHandleController {
 	
 
 	@ExceptionHandler(ParseException.class)
-	public ResponseEntity<ErrorResponse> handleParseException(ParseException exception, WebRequest webRequest) {
-		ErrorResponse errorResponse = new ErrorResponse(
+	public ResponseEntity<ErrorResponseDto> handleParseException(ParseException exception, WebRequest webRequest) {
+		ErrorResponseDto errorResponse = new ErrorResponseDto(
 					webRequest.getDescription(false),
 					HttpStatus.BAD_REQUEST,
 					exception.getMessage(),

@@ -29,7 +29,7 @@ public class OrderValidation {
 	}
 	
 	public static void checkDishIsNotInMenu(List<String> todayDishes, OrderDetail orderDetail) {
-		if (!todayDishes.contains(orderDetail.getDishName())) throw new ResourceNotFoundException( String.format("Danh sách menu hôm nay: %s", List.of(todayDishes)), 
-                "Món", orderDetail.getDishName());
+		if (!todayDishes.contains(orderDetail.getName())) throw new ResourceNotFoundException( String.format("Danh sách menu hôm nay: %s", List.of(todayDishes)), 
+                "Món", orderDetail.getName());
 	}
 }

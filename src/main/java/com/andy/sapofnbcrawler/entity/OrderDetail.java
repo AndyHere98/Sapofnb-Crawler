@@ -1,7 +1,6 @@
 package com.andy.sapofnbcrawler.entity;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,18 +23,19 @@ public class OrderDetail extends BaseEntity{
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	@Column(name = "id")
+	private Long orderId;
 	@ManyToOne
-	@JoinColumn(name = "order_id", referencedColumnName = "order_code")
+	@JoinColumn(name = "order_id", referencedColumnName = "order_sku", nullable = false)
 	private Order order;
-	@Column(nullable = false, length = 200)
-	private String dishName;
+	@Column(name = "dish_name", nullable = false, length = 200)
+	private String name;
 	@Column(length = 200)
 	private String member;
 	@Column(nullable = false, length = 2)
 	private int quantity;
 	@Column(nullable = false, length = 5)
 	private BigDecimal price;
-	@Column(nullable = false)
-    private LocalDateTime orderDate;
+//	@Column(nullable = false)
+//    private Date orderDate;
 }

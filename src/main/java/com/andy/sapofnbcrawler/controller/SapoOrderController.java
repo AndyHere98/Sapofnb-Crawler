@@ -12,11 +12,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.andy.sapofnbcrawler.request.MemberOrderRequest;
-import com.andy.sapofnbcrawler.response.CommonResponse;
-import com.andy.sapofnbcrawler.response.ErrorResponse;
-import com.andy.sapofnbcrawler.response.MemberOrderResponse;
-import com.andy.sapofnbcrawler.response.OrderResponse;
+import com.andy.sapofnbcrawler.dto.ErrorResponseDto;
+import com.andy.sapofnbcrawler.dto.MemberOrderDto;
+import com.andy.sapofnbcrawler.dto.OrderDto;
+import com.andy.sapofnbcrawler.dto.ResponseDto;
 import com.andy.sapofnbcrawler.service.OrderService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,194 +29,99 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 
-
-@Tag(
-	name = "Thông tin đơn hàng REST API",
-	description = "Thông tin về các đơn hàng hiển thị dạng REST API"
-)
+@Tag(name = "Thông tin đơn hàng REST API", description = "Thông tin về các đơn hàng hiển thị dạng REST API")
 @RestController
-@RequestMapping(path = "${sapo-api.version}/order", produces = {MediaType.APPLICATION_JSON_VALUE})
+@RequestMapping(path = "${sapo-api.version}/order", produces = { MediaType.APPLICATION_JSON_VALUE })
 @RequiredArgsConstructor
 public class SapoOrderController {
-    
-    private final OrderService orderService;
 
-    
-    @Operation(
-    	summary = "Lấy danh sách đơn hàng hôm nay"	
-    )
-    @ApiResponses({
-    	@ApiResponse(
-			responseCode = "200", description = "Yêu cầu được thực hiện thành công",
-			content = @Content(
-				schema = @Schema(implementation = OrderResponse.class)
-			)
-		),
+	private final OrderService orderService;
+
+	@Operation(summary = "Lấy danh sách đơn hàng hôm nay")
+	@ApiResponses({
+		@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công", content = @Content(schema = @Schema(implementation = OrderDto.class))),
 //    	@ApiResponse(
 //    		responseCode = "417", description = "Thông tin đơn hàng nhận về không như dự kiến, hãy liên lạc dev để check kỹ hơn",
 //			content = @Content(
 //				schema = @Schema(implementation = CommonResponse.class)
 //			)
 //		),
-    	@ApiResponse(
-    		responseCode = "500", description = "Lấy thông tin đơn hàng không thành công, liên hệ với dev",
-    		content = @Content(
-				schema = @Schema(implementation = ErrorResponse.class)
-			)
-		)
-    })
-    @GetMapping("/cart")
-    public ResponseEntity<OrderResponse> getCartOrder() {
-    	OrderResponse cartOrder = new OrderResponse();
-		cartOrder = orderService.getCartOrder();
+		@ApiResponse(responseCode = "500", description = "Lấy thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
+	@GetMapping("/cart")
+	public ResponseEntity<OrderDto> getCartOrder() {
+		OrderDto cartOrder = new OrderDto();
+		cartOrder = orderService.checkTodayOrder();
 		return ResponseEntity.ok(cartOrder);
-    }
-    
-    
-    @Operation(
-    	summary = "Đặt đơn hàng"	
-    )
-    @ApiResponses({
-    	@ApiResponse(
-			responseCode = "201", description = "Yêu cầu được thực hiện thành công",
-			content = @Content(
-				schema = @Schema(implementation = OrderResponse.class)
-			)
-		),
-    	@ApiResponse(
-    		responseCode = "417", description = "Thông tin đơn hàng nhận về không như dự kiến, hãy liên lạc dev để check kỹ hơn",
-			content = @Content(
-				schema = @Schema(implementation = CommonResponse.class)
-			)
-		),
-    	@ApiResponse(
-    		responseCode = "500", description = "Lấy thông tin đơn hàng không thành công, liên hệ với dev",
-    		content = @Content(
-				schema = @Schema(implementation = ErrorResponse.class)
-			)
-		)
-    })
-    @PostMapping("/place")
-    public ResponseEntity<?> placeOrder(@Valid @RequestBody MemberOrderRequest request) {
-    	boolean isCreated = orderService.placeOrder(request);
-    	CommonResponse commonResponse = new CommonResponse();
-    	
-    	if (isCreated) {
-    		commonResponse.setStatus(HttpStatus.CREATED);
-    		commonResponse.setMessage("Đặt đơn hàng thành công");
-    		return ResponseEntity.status(HttpStatus.CREATED).body(commonResponse);
+	}
+
+	@Operation(summary = "Đặt đơn hàng")
+	@ApiResponses({
+		@ApiResponse(responseCode = "201", description = "Yêu cầu được thực hiện thành công", content = @Content(schema = @Schema(implementation = OrderDto.class))),
+		@ApiResponse(responseCode = "417", description = "Thông tin đơn hàng nhận về không như dự kiến, hãy liên lạc dev để check kỹ hơn", content = @Content(schema = @Schema(implementation = ResponseDto.class))),
+		@ApiResponse(responseCode = "500", description = "Lấy thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
+	@PostMapping("/place")
+	public ResponseEntity<?> placeOrder(@Valid @RequestBody OrderDto request) {
+		boolean isCreated = orderService.placeOrder(request);
+		ResponseDto commonResponse = new ResponseDto();
+
+		if (isCreated) {
+			commonResponse.setStatus(HttpStatus.CREATED);
+			commonResponse.setMessage("Đặt đơn hàng thành công");
+			return ResponseEntity.status(HttpStatus.CREATED).body(commonResponse);
 		} else {
 			commonResponse.setStatus(HttpStatus.EXPECTATION_FAILED);
-    		commonResponse.setMessage("Đơn đặt hàng của bạn bị lỗi. Xin hãy check lại với Admin");
-    		return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(commonResponse);
+			commonResponse.setMessage("Đơn đặt hàng của bạn bị lỗi. Xin hãy check lại với Admin");
+			return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(commonResponse);
 		}
-    }
-    
-    @Operation(
-    	summary = "Cập nhật thông tin đơn hàng"	
-    )
-    @ApiResponses({
-    	@ApiResponse(
-			responseCode = "200", description = "Yêu cầu được thực hiện thành công",
-			content = @Content(
-				schema = @Schema(implementation = CommonResponse.class)
-			)
-		),
-    	@ApiResponse(
-    		responseCode = "417", description = "Thông tin đơn hàng xử lý không như dự kiến, hãy liên lạc dev để check kỹ hơn",
-			content = @Content(
-				schema = @Schema(implementation = CommonResponse.class)
-			)
-		),
-    	@ApiResponse(
-    		responseCode = "500", description = "Xử lý cập nhật thông tin đơn hàng không thành công, liên hệ với dev",
-    		content = @Content(
-				schema = @Schema(implementation = ErrorResponse.class)
-			)
-		)
-    })
-    @PutMapping("/{orderCode}")
-    public ResponseEntity<CommonResponse> editOrder(
-    		@NotBlank(message = "Mã đơn hàng không thể trống")
-    		@Size(max = 36)
-    		@PathVariable("orderCode") String orderCode,
-    		@Valid
-    		@RequestBody MemberOrderRequest request) {
-    	CommonResponse commonResponse = new CommonResponse();
-    	
-    	boolean isUpdated = orderService.editOrder(orderCode, request);
-    	
-    	if (isUpdated) {
-    		commonResponse.setStatus(HttpStatus.OK);
-    		commonResponse.setMessage("Chỉnh sửa đơn hàng thành công");
-    		return ResponseEntity.ok(commonResponse);
+	}
+
+	@Operation(summary = "Cập nhật thông tin đơn hàng")
+	@ApiResponses({
+		@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công", content = @Content(schema = @Schema(implementation = ResponseDto.class))),
+		@ApiResponse(responseCode = "417", description = "Thông tin đơn hàng xử lý không như dự kiến, hãy liên lạc dev để check kỹ hơn", content = @Content(schema = @Schema(implementation = ResponseDto.class))),
+		@ApiResponse(responseCode = "500", description = "Xử lý cập nhật thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
+	@PutMapping("/{orderSku}")
+	public ResponseEntity<ResponseDto> editOrder(
+			@NotBlank(message = "Mã đơn hàng không thể trống") @Size(max = 36) @PathVariable("orderSku") String orderSku,
+			@Valid @RequestBody OrderDto request) {
+		ResponseDto commonResponse = new ResponseDto();
+
+		boolean isUpdated = orderService.editOrder(orderSku, request);
+
+		if (isUpdated) {
+			commonResponse.setStatus(HttpStatus.OK);
+			commonResponse.setMessage("Chỉnh sửa đơn hàng thành công");
+			return ResponseEntity.ok(commonResponse);
 		} else {
 			commonResponse.setStatus(HttpStatus.EXPECTATION_FAILED);
-    		commonResponse.setMessage("Đơn hàng chỉnh sửa thất bại. Hãy check lại với Admin");
-    		return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(commonResponse);
+			commonResponse.setMessage("Đơn hàng chỉnh sửa thất bại. Hãy check lại với Admin");
+			return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(commonResponse);
 		}
-    }
-    
-    @Operation(
-    	summary = "Lấy thông tin đơn hàng bằng mã đơn hàng"	
-    )
-    @ApiResponses({
-    	@ApiResponse(
-			responseCode = "200", description = "Yêu cầu được thực hiện thành công",
-			content = @Content(
-				schema = @Schema(implementation = MemberOrderResponse.class)
-			)
-		),
-    	@ApiResponse(
-    		responseCode = "404", description = "Lấy thông tin đơn hàng không thành công, kiểm tra lỗi và liên hệ với dev",
-    		content = @Content(
-				schema = @Schema(implementation = ErrorResponse.class)
-			)
-		)
-    })
-    @GetMapping("/{orderCode}")
-    public ResponseEntity<MemberOrderResponse> getOrderByOrderCode(
-    		@NotBlank(message = "Mã đơn hàng không thể trống")
-    		@Size(max = 36)
-    		@PathVariable("orderCode") String orderCode) {
-    	MemberOrderResponse order = new MemberOrderResponse();
-		order = orderService.getOrderById(orderCode);
+	}
+
+	@Operation(summary = "Lấy thông tin đơn hàng bằng mã đơn hàng")
+	@ApiResponses({
+		@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công", content = @Content(schema = @Schema(implementation = MemberOrderDto.class))),
+		@ApiResponse(responseCode = "404", description = "Lấy thông tin đơn hàng không thành công, kiểm tra lỗi và liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
+	@GetMapping("/{orderSku}")
+	public ResponseEntity<OrderDto> getOrderByOrderCode(
+			@NotBlank(message = "Mã đơn hàng không thể trống") @Size(max = 36) @PathVariable("orderSku") String orderSku) {
+		OrderDto order = orderService.getOrderById(orderSku);
 		return ResponseEntity.ok(order);
-    }
-    
-    
-    @Operation(
-    	summary = "Xoá thông tin đơn hàng"	
-    )
-    @ApiResponses({
-    	@ApiResponse(
-			responseCode = "200", description = "Yêu cầu được thực hiện thành công",
-			content = @Content(
-				schema = @Schema(implementation = CommonResponse.class)
-			)
-		),
-    	@ApiResponse(
-    		responseCode = "417", description = "Thông tin đơn hàng xử lý không như dự kiến, hãy liên lạc dev để check kỹ hơn",
-			content = @Content(
-				schema = @Schema(implementation = CommonResponse.class)
-			)
-		),
-    	@ApiResponse(
-    		responseCode = "500", description = "Xử lý xoá thông tin đơn hàng không thành công, liên hệ với dev",
-    		content = @Content(
-				schema = @Schema(implementation = ErrorResponse.class)
-			)
-		)
-    })
-    @DeleteMapping("/{orderCode}")
-    public ResponseEntity<CommonResponse> deleteOrder(
-    		@NotBlank(message = "Mã đơn hàng không thể trống")
-    		@Size(max = 36)
-    		@PathVariable("orderCode") String orderCode) {
-		CommonResponse commonResponse = new CommonResponse();
-		
-		boolean isDeleted = orderService.deleteOrder(orderCode);
-		
+	}
+
+	@Operation(summary = "Xoá thông tin đơn hàng")
+	@ApiResponses({
+		@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công", content = @Content(schema = @Schema(implementation = ResponseDto.class))),
+		@ApiResponse(responseCode = "417", description = "Thông tin đơn hàng xử lý không như dự kiến, hãy liên lạc dev để check kỹ hơn", content = @Content(schema = @Schema(implementation = ResponseDto.class))),
+		@ApiResponse(responseCode = "500", description = "Xử lý xoá thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
+	@DeleteMapping("/{orderSku}")
+	public ResponseEntity<ResponseDto> deleteOrder(
+			@NotBlank(message = "Mã đơn hàng không thể trống") @Size(max = 36) @PathVariable("orderSku") String orderSku) {
+		ResponseDto commonResponse = new ResponseDto();
+
+		boolean isDeleted = orderService.deleteOrder(orderSku);
+
 		if (isDeleted) {
 			commonResponse.setStatus(HttpStatus.OK);
 			commonResponse.setMessage("Bạn đã xoá đơn hàng thành công");
@@ -225,7 +129,7 @@ public class SapoOrderController {
 		} else {
 			commonResponse.setStatus(HttpStatus.EXPECTATION_FAILED);
 			commonResponse.setMessage("Đơn hàng xoá không thành công. Hãy check lại với Admin");
-	   		return ResponseEntity.internalServerError().body(commonResponse);
+			return ResponseEntity.internalServerError().body(commonResponse);
 		}
-    }
+	}
 }

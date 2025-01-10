@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.andy.sapofnbcrawler.dto.OrderDto;
 import com.andy.sapofnbcrawler.entity.Order;
 import com.andy.sapofnbcrawler.request.MemberOrderRequest;
 
@@ -44,6 +45,18 @@ public interface IOrderRepository extends JpaRepository<Order, Long> {
     		+ " order by o.orderDate asc, o.customerName asc")
     Optional<List<Order>> getOrderByOrderDateAndCustomerNameOrderByOrderDateAsc(@Param("customerName") String customerName,@Param("fromDate") String fromDate);
 
-    @Query(value = "select o from Order o where o.orderCode = :orderCode")
-	Optional<Order> findByOrderCode(@Param("orderCode") String orderCode);
+    @Query(value = "select o from Order o where o.orderSku = :orderSku")
+	Optional<Order> findByOrderCode(@Param("orderSku") String orderSku);
+
+    @Query(value = "select o from Order o " +
+            "where TO_CHAR(o.orderDate, 'dd/MM/yyyy') = TO_CHAR(TO_DATE(:#{#orderDto.orderDate}, 'dd/MM/yyyy'), 'dd/MM/yyyy')" +
+    		" and o.customerName = :#{#orderDto.customerName}"
+    		+ " and o.customerPhone = :#{#orderDto.customerPhone}")
+	Optional<Order> getOrderByCustomerNameAndCustomerPhone(@Param("orderDto") OrderDto orderDto);
+
+    @Query(value = "select o from Order o " +
+            "where o.orderDate >= TO_DATE(:#{#orderDto.fromDate}, 'dd/MM/yyyy')"
+    		+ " and o.orderDate <= TO_DATE(:#{#orderDto.toDate}, 'dd/MM/yyyy')"
+    )
+	Optional<List<Order>> getOrdersFromDateToToDate(@Param("orderDto") OrderDto orderDto);
 }

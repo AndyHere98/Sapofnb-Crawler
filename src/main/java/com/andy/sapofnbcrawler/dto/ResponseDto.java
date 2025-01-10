@@ -1,4 +1,4 @@
-package com.andy.sapofnbcrawler.response;
+package com.andy.sapofnbcrawler.dto;
 
 import org.springframework.http.HttpStatus;
 
@@ -17,7 +17,7 @@ import lombok.Data;
 @Data
 @JsonRootName("response")
 @JsonInclude(Include.NON_NULL)
-public class CommonResponse {
+public class ResponseDto {
 	
 	@Schema(
 		description = "HTTP status code"

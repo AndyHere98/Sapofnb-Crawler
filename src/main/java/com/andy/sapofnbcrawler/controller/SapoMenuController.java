@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.andy.sapofnbcrawler.response.ErrorResponse;
-import com.andy.sapofnbcrawler.response.MenuResponse;
+import com.andy.sapofnbcrawler.dto.ErrorResponseDto;
+import com.andy.sapofnbcrawler.dto.MenuDto;
 import com.andy.sapofnbcrawler.service.MenuService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -38,19 +38,19 @@ public class SapoMenuController {
     	@ApiResponse(
 			responseCode = "200", description = "Yêu cầu được thực hiện thành công",
 			content = @Content(
-				schema = @Schema(implementation = MenuResponse.class)
+				schema = @Schema(implementation = MenuDto.class)
 			)
 		),
     	@ApiResponse(
     		responseCode = "500", description = "Lấy thông tin menu không thành công, liên hệ với dev",
     		content = @Content(
-				schema = @Schema(implementation = ErrorResponse.class)
+				schema = @Schema(implementation = ErrorResponseDto.class)
 			)
 		)
     })
     @GetMapping("/get-menu")
     public ResponseEntity<?> getMenu() {
-    	MenuResponse menuResponse = menuService.getMenu();
+    	MenuDto menuResponse = menuService.getMenu();
 		return ResponseEntity.ok(menuResponse);
     }
 }

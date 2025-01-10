@@ -34,7 +34,7 @@ public class MemberOrderRequest {
 		description = "Số điện thoại khách hàng"
 	)
 	@NotEmpty(message = "Số điện thoại khách hàng không được để trống")
-    @Pattern(regexp = "^[\\+]?[(]?[0-9]{3}[)]?[-\\s\\.]?[0-9]{3}[-\\s\\.]?[0-9]{4,6}$")
+    @Pattern(regexp = "^[\\+]?[(]?[0-9]{3}[)]?[-\\s\\.]?[0-9]{3}[-\\s\\.]?[0-9]{4,6}$", message = "Định dạng số điện thoại không chính xác, cần nhập đủ 10 số")
 	private String customerPhone;
 
 	@Schema(

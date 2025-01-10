@@ -1,6 +1,7 @@
-package com.andy.sapofnbcrawler.response;
+package com.andy.sapofnbcrawler.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.http.HttpStatus;
 
@@ -20,9 +21,9 @@ import lombok.Data;
 @Data
 @JsonRootName("response")
 @JsonInclude(Include.NON_NULL)
-public class ErrorResponse {
+public class ErrorResponseDto {
 	
-	public ErrorResponse(String apiPath, HttpStatus errorStatus, String errorMessage, LocalDateTime errorTime) {
+	public ErrorResponseDto(String apiPath, HttpStatus errorStatus, String errorMessage, LocalDateTime errorTime) {
 		this.apiPath = apiPath;
 		this.errorStatus = errorStatus;
 		this.errorMessage = errorMessage;
@@ -48,8 +49,33 @@ public class ErrorResponse {
 	private String errorMessage;
 	
 	@Schema(
+		description = "Thông tin chi tiết lỗi"
+	)
+	@JsonProperty("errorData")
+	private List<ErrorData> errorDataList;
+	
+	@Schema(
 		description = "Thời gian xuất hiện lỗi"
 	)
 	@JsonProperty("errorTime")
 	private LocalDateTime errorTime;
+	
+	@Schema(
+		name = "Thông tin hiển thị lỗi cho validation",
+		description = "Hiển thị chi tiết lỗi được mô tả"
+	)
+	@Data
+    @JsonInclude(Include.NON_NULL)
+	public static class ErrorData {
+		@Schema(
+			description = "Tên giá trị đang lỗi"
+		)
+		@JsonProperty("errorName")
+		private String errorName;
+		@Schema(
+				description = "Mô tả nguyên nhân giá trị đang lỗi"
+			)
+		@JsonProperty("errorDesc")
+		private String errorDesc;
+	}
 }
