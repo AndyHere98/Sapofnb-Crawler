@@ -240,5 +240,27 @@ public class OrderService {
 //        orderResponse.setTotalPrice(order.getTotalPrice());
 //        return orderResponse;
     }
+
+	public List<OrderDto> getOrdersWithCondition(String customerName, String fromDate, String toDate) {
+		OrderDto orderDto = new OrderDto();
+		orderDto.setCustomerName(customerName);
+		orderDto.setFromDate(fromDate);
+		orderDto.setToDate(toDate);
+		
+		
+		List<Order> orderList = orderRepository.getOrdersFromDateToToDate(orderDto)
+				.orElseThrow(() -> new RuntimeException("Không có đơn hàng được tìm thấy"))
+				;
+		List<OrderDto> orderDtoList = orderList.stream().map(order -> OrderMapper.mappingToOrderDto(order, new OrderDto())).toList();
+		return orderDtoList;
+	}
+
+	public List<OrderDto> getAllOrders() {
+		
+		
+		List<Order> orderList = orderRepository.findAll();
+		List<OrderDto> orderDtoList = orderList.stream().map(order -> OrderMapper.mappingToOrderDto(order, new OrderDto())).toList();
+		return orderDtoList;
+	}
     
 }

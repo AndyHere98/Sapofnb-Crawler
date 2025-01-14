@@ -21,26 +21,27 @@ import com.andy.sapofnbcrawler.request.MemberOrderRequest;
 
 public class OrderMapper {
 
-	private OrderMapper() {
-	};
+	private OrderMapper() {};
 
 	public static OrderDto mappingToOrderDto(Order order, OrderDto orderDto) {
-		OrderDetailDto dishResponse = new OrderDetailDto();
-		List<OrderDetailDto> dishes = new ArrayList<>();
+		OrderDetailDto orderDetailDto = new OrderDetailDto();
+		List<OrderDetailDto> orderDetailDtolList = new ArrayList<>();
 
 		BeanUtils.copyProperties(order, orderDto);
 
-//        for (int i = 0; i < orderRequest.getDishes().size(); i++) {
-//            dishResponse = new DishDto();
-//            BeanUtils.copyProperties(orderRequest.getDishes().get(i), dishResponse);
-//            dishes.add(dishResponse);
-//        }
+        for (int i = 0; i < order.getOrderDetails().size(); i++) {
+        	orderDetailDto = new OrderDetailDto();
+            BeanUtils.copyProperties(order.getOrderDetails().get(i), orderDetailDto);
+            orderDetailDto.setId(order.getOrderDetails().get(i).getName().hashCode());
+            orderDetailDtolList.add(orderDetailDto);
+        }
 
-//        orderResponse.setDishes(dishes);
+        orderDto.setOrderDetails(orderDetailDtolList);
 		orderDto.setCreatedOn(Timestamp.valueOf(order.getCreatedDate()).getTime());
 		orderDto.setModifiedOn(Timestamp
 				.valueOf((order.getUpdateDate() != null ? order.getUpdateDate() : order.getCreatedDate())).getTime());
 
+		
 		return orderDto;
 	}
 
@@ -49,7 +50,9 @@ public class OrderMapper {
 		List<OrderDetailDto> dishes = new ArrayList<>();
 
 		BeanUtils.copyProperties(orderDto, order);
-
+		BigDecimal totalPrice = orderDto.getOrderDetails().stream().map(dish -> dish.getPrice().multiply(new BigDecimal(dish.getQuantity()))).reduce(BigDecimal.ZERO,  BigDecimal::add);
+		order.setTotalPrice(totalPrice);
+		
 //        for (int i = 0; i < orderRequest.getDishes().size(); i++) {
 //            dishResponse = new DishDto();
 //            BeanUtils.copyProperties(orderRequest.getDishes().get(i), dishResponse);

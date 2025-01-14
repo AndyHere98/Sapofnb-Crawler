@@ -57,6 +57,7 @@ public interface IOrderRepository extends JpaRepository<Order, Long> {
     @Query(value = "select o from Order o " +
             "where o.orderDate >= TO_DATE(:#{#orderDto.fromDate}, 'dd/MM/yyyy')"
     		+ " and o.orderDate <= TO_DATE(:#{#orderDto.toDate}, 'dd/MM/yyyy')"
+    		+ " and o.customerName like '%:#{#orderDto.customerName}%'"
     )
 	Optional<List<Order>> getOrdersFromDateToToDate(@Param("orderDto") OrderDto orderDto);
 }

@@ -32,16 +32,18 @@ public class Order extends BaseEntity {
 	private String orderSku;
 	@Column(nullable = false, length = 100)
 	private String customerName;
-	@Column(nullable = false, length = 20)
+//	@Column(nullable = false, length = 20)
+	@Column(length = 20)
     private String customerPhone;
-	@Column(nullable = false, length = 100)
+//	@Column(nullable = false, length = 100)
+	@Column(length = 100)
     private String customerEmail;
 	@Column(length = 200)
     private String address;
 	@Column(nullable = false)
     private BigDecimal totalPrice;
 	@Column(nullable = false, length = 10)
-    private String paymentMethodType;
+    private String paymentMethod;
 	@Column(nullable = false, length = 1, columnDefinition = "NUMBER(1,0) DEFAULT 0")
     private int isPaid;
     private Date orderDate;

@@ -29,8 +29,8 @@ public class OrderDto {
 	@Schema(
 		description = "Số điện thoại khách hàng"
 	)
-	@NotEmpty(message = "Số điện thoại khách hàng không được để trống")
-    @Pattern(regexp = "^[\\+]?[(]?[0-9]{3}[)]?[-\\s\\.]?[0-9]{3}[-\\s\\.]?[0-9]{4,6}$")
+//	@NotEmpty(message = "Số điện thoại khách hàng không được để trống")
+//    @Pattern(regexp = "^[\\+]?[(]?[0-9]{3}[)]?[-\\s\\.]?[0-9]{3}[-\\s\\.]?[0-9]{4,6}$")
     private String customerPhone;
 	
 	@Schema(
@@ -39,6 +39,7 @@ public class OrderDto {
     private String customerEmail;
 
 	@Schema(description = "Mã đơn hàng")
+	@JsonProperty("id")
 	private String orderSku;
 
 	@Schema(description = "Ghi chú đến bếp")
@@ -51,11 +52,11 @@ public class OrderDto {
 	private String status;
 
 	@Schema(description = "Thời gian tạo đơn hàng")
-	@JsonProperty("orderTime")
+	@JsonProperty("createdAt")
 	private long createdOn;
 
 	@Schema(description = "Thời gian đơn hàng cập nhật trạng thái lần cuối")
-	@JsonProperty("updatedOrderTime")
+	@JsonProperty("updateAt")
 	private long modifiedOn;
 
 	@Schema(description = "Ngày đặt đơn")
@@ -72,7 +73,7 @@ public class OrderDto {
 	private List<OrderDetailDto> orderDetails;
 
 	@Schema(description = "Hình thức thanh toán dạng code")
-	private String paymentMethodType;
+	private String paymentMethod;
 
 	@Schema(description = "Hình thức thanh toán dạng chữ")
 	private String paymentMethodName;

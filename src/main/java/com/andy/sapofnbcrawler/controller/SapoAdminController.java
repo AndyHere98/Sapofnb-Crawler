@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
 @Tag(
@@ -73,7 +74,7 @@ public class SapoAdminController {
 		)
     })
     @GetMapping("/summary-order")
-    public ResponseEntity<List<OrderDto>> summaryOrder(@RequestBody OrderDto orderDto) {
+    public ResponseEntity<List<OrderDto>> summaryOrder(@NotNull(message = "Cần điều kiện để thực hiện tổng đơn hàng") @RequestBody OrderDto orderDto) {
     	List<OrderDto> orderList = adminService.summaryOrders(orderDto);
 		return ResponseEntity.ok(orderList);
     }

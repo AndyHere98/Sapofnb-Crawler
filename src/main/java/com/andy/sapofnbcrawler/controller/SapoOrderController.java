@@ -1,5 +1,8 @@
 package com.andy.sapofnbcrawler.controller;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.andy.sapofnbcrawler.dto.ErrorResponseDto;
@@ -52,6 +56,30 @@ public class SapoOrderController {
 		OrderDto cartOrder = new OrderDto();
 		cartOrder = orderService.checkTodayOrder();
 		return ResponseEntity.ok(cartOrder);
+	}
+	
+	@Operation(summary = "Lấy danh sách đơn hàng")
+	@ApiResponses({
+		@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công", content = @Content(schema = @Schema(implementation = OrderDto.class))),
+		@ApiResponse(responseCode = "500", description = "Lấy thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
+	@GetMapping("/search")
+	public ResponseEntity<List<OrderDto>> getOrdersWithCondition(@RequestParam("customerName") String customerName, @RequestParam("fromDate") String fromDate, @RequestParam("toDate") String toDate) {
+		List<OrderDto> allOrder = new ArrayList<>();
+		
+		allOrder = orderService.getOrdersWithCondition(customerName, fromDate, toDate);
+		return ResponseEntity.ok(allOrder);
+	}
+	
+	@Operation(summary = "Lấy danh sách đơn hàng")
+	@ApiResponses({
+		@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công", content = @Content(schema = @Schema(implementation = OrderDto.class))),
+		@ApiResponse(responseCode = "500", description = "Lấy thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
+	@GetMapping("/all")
+	public ResponseEntity<List<OrderDto>> getAllOrders() {
+		List<OrderDto> allOrder = new ArrayList<>();
+		
+		allOrder = orderService.getAllOrders();
+		return ResponseEntity.ok(allOrder);
 	}
 
 	@Operation(summary = "Đặt đơn hàng")
