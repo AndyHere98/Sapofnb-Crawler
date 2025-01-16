@@ -17,7 +17,6 @@ import com.andy.sapofnbcrawler.dto.OrderDetailDto;
 import com.andy.sapofnbcrawler.dto.SapoMenuDto;
 import com.andy.sapofnbcrawler.exception.ResourceNotFoundException;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -27,7 +26,6 @@ public class MenuService {
 	private final String URI = SapoConstants.URI;
 	private final String COOKIE = SapoConstants.COOKIE;
 
-	@Transactional(value = Transactional.TxType.REQUIRED)
 	public MenuDto getMenu() {
 
 		RestTemplate restTemplate = new RestTemplate();
@@ -41,7 +39,7 @@ public class MenuService {
 		ResponseEntity<String> response = restTemplate.exchange(sUrl.toString(), HttpMethod.GET, httpEntity,
 				String.class);
 
-		System.out.println(response.getBody());
+//		System.out.println(response.getBody());
 		String json = SapoUtils.getJsonData(response.getBody());
 
 		if (json.isEmpty())

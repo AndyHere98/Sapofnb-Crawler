@@ -53,14 +53,6 @@ public class OrderMapper {
 		BigDecimal totalPrice = orderDto.getOrderDetails().stream().map(dish -> dish.getPrice().multiply(new BigDecimal(dish.getQuantity()))).reduce(BigDecimal.ZERO,  BigDecimal::add);
 		order.setTotalPrice(totalPrice);
 		
-//        for (int i = 0; i < orderRequest.getDishes().size(); i++) {
-//            dishResponse = new DishDto();
-//            BeanUtils.copyProperties(orderRequest.getDishes().get(i), dishResponse);
-//            dishes.add(dishResponse);
-//        }
-
-//        orderResponse.setDishes(dishes);
-
 		return order;
 	}
 
@@ -122,7 +114,6 @@ public class OrderMapper {
 			}
 
 			for (Map.Entry<String, OrderDetail> entry : mealMap.entrySet()) {
-//				String detailkey = entry.getKey();
 				OrderDetail detailVal = entry.getValue();
 
 				OrderDetailDto orderDetailDto = new OrderDetailDto();
@@ -152,7 +143,8 @@ public class OrderMapper {
 
 		// Divide order list into list base on order date
 		for (Order order : orderList) {
-			String keyStr = String.format("%s%s%s", order.getCustomerName(), order.getCustomerPhone(), order.getCustomerEmail());
+//			String keyStr = String.format("%s%s%s", order.getCustomerName(), order.getCustomerPhone(), order.getCustomerEmail());
+			String keyStr = String.valueOf(order.hashCode());
 			Integer key = keyStr.hashCode();
 			if (orderMap.containsKey(key)) {
 				orderMap.get(key).add(order);
@@ -178,11 +170,6 @@ public class OrderMapper {
 				int orderQuantity = 0;
 				BigDecimal orderPrice = BigDecimal.ZERO;
 				
-				memberOrderDto.setCustomerName(order.getCustomerName());
-				memberOrderDto.setCustomerPhone(order.getCustomerPhone());
-				memberOrderDto.setCustomerEmail(order.getCustomerEmail());
-				
-
 				orderDto = new OrderDto();
 				List<OrderDetailDto> orderDetailDtoList = new ArrayList<>();
 				

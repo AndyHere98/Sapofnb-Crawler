@@ -16,31 +16,31 @@ import com.andy.sapofnbcrawler.request.MemberOrderRequest;
 public interface IOrderRepository extends JpaRepository<Order, Long> {
     
 //    @Query(value = "select o from Order o " +
-//                   "where FORMATDATETIME(o.orderDate, 'dd/MM/yyyy') = FORMATDATETIME(PARSEDATETIME(:today, 'dd/MM/yyyy'), 'dd/MM/yyyy')")
+//                   "where FORMATDATETIME(o.orderDate, 'yyyy-MM-dd') = FORMATDATETIME(PARSEDATETIME(:today, 'yyyy-MM-dd'), 'yyyy-MM-dd')")
     @Query(value = "select o from Order o " +
-            "where TO_CHAR(o.orderDate, 'dd/MM/yyyy') = TO_CHAR(TO_DATE(:today, 'dd/MM/yyyy'), 'dd/MM/yyyy')")
+            "where TO_CHAR(o.orderDate, 'yyyy-MM-dd') = TO_CHAR(TO_DATE(:today, 'yyyy-MM-dd'), 'yyyy-MM-dd')")
     Optional<List<Order>> getOrderByOrderDate(@Param("today") String today);
     
 //    @Query(value = "select o from Order o " +
-//                   "where FORMATDATETIME(o.orderDate, 'dd/MM/yyyy') = FORMATDATETIME(PARSEDATETIME(:today, 'dd/MM/yyyy'), 'dd/MM/yyyy')" +
+//                   "where FORMATDATETIME(o.orderDate, 'yyyy-MM-dd') = FORMATDATETIME(PARSEDATETIME(:today, 'yyyy-MM-dd'), 'yyyy-MM-dd')" +
 //                   "order by o.customerName")
     @Query(value = "select o from Order o " +
-            "where TO_CHAR(o.orderDate, 'dd/MM/yyyy') = TO_CHAR(TO_DATE(:today, 'dd/MM/yyyy'), 'dd/MM/yyyy')" +
+            "where TO_CHAR(o.orderDate, 'yyyy-MM-dd') = TO_CHAR(TO_DATE(:today, 'yyyy-MM-dd'), 'yyyy-MM-dd')" +
             "order by o.customerName")
     Optional<List<Order>> getOrdersByOrderDateOrderByCustomerName(@Param("today") String today);
     
 //    @Query(value = "select o from Order o where o.customerName = :#{#request.customerName}" +
-//                   " and FORMATDATETIME(o.orderDate, 'dd/MM/yyyy') = FORMATDATETIME(current_date, 'dd/MM/yyyy')"
+//                   " and FORMATDATETIME(o.orderDate, 'yyyy-MM-dd') = FORMATDATETIME(current_date, 'yyyy-MM-dd')"
 //                   )
     @Query(value = "select o from Order o where o.customerName = :#{#request.customerName}" +
-            " and TO_CHAR(o.orderDate, 'dd/MM/yyyy') = TO_CHAR(current_date, 'dd/MM/yyyy')"
+            " and TO_CHAR(o.orderDate, 'yyyy-MM-dd') = TO_CHAR(current_date, 'yyyy-MM-dd')"
             )
     Optional<Order> getOrderByOrderDateOrderByCustomerName(@Param("request") MemberOrderRequest request);
     
-//    @Query(value = "select o from Order o where FORMATDATETIME(o.orderDate, 'dd/MM/yyyy') >= FORMATDATETIME(PARSEDATETIME(:fromDate, 'dd/MM/yyyy'), 'dd/MM/yyyy')"
+//    @Query(value = "select o from Order o where FORMATDATETIME(o.orderDate, 'yyyy-MM-dd') >= FORMATDATETIME(PARSEDATETIME(:fromDate, 'yyyy-MM-dd'), 'yyyy-MM-dd')"
 //    		+ " and o.customerName like '%' || :customerName || '%'"
 //    		+ " order by o.orderDate asc, o.customerName asc")
-    @Query(value = "select o from Order o where TO_CHAR(o.orderDate, 'dd/MM/yyyy') >= TO_CHAR(TO_DATE(:fromDate, 'dd/MM/yyyy'), 'dd/MM/yyyy')"
+    @Query(value = "select o from Order o where TO_CHAR(o.orderDate, 'yyyy-MM-dd') >= TO_CHAR(TO_DATE(:fromDate, 'yyyy-MM-dd'), 'yyyy-MM-dd')"
     		+ " and o.customerName like '%' || :customerName || '%'"
     		+ " order by o.orderDate asc, o.customerName asc")
     Optional<List<Order>> getOrderByOrderDateAndCustomerNameOrderByOrderDateAsc(@Param("customerName") String customerName,@Param("fromDate") String fromDate);
@@ -49,15 +49,15 @@ public interface IOrderRepository extends JpaRepository<Order, Long> {
 	Optional<Order> findByOrderCode(@Param("orderSku") String orderSku);
 
     @Query(value = "select o from Order o " +
-            "where TO_CHAR(o.orderDate, 'dd/MM/yyyy') = TO_CHAR(TO_DATE(:#{#orderDto.orderDate}, 'dd/MM/yyyy'), 'dd/MM/yyyy')" +
+            "where TO_CHAR(o.orderDate, 'yyyy-MM-dd') = TO_CHAR(TO_DATE(:#{#orderDto.orderDate}, 'yyyy-MM-dd'), 'yyyy-MM-dd')" +
     		" and o.customerName = :#{#orderDto.customerName}"
     		+ " and o.customerPhone = :#{#orderDto.customerPhone}")
 	Optional<Order> getOrderByCustomerNameAndCustomerPhone(@Param("orderDto") OrderDto orderDto);
 
     @Query(value = "select o from Order o " +
-            "where o.orderDate >= TO_DATE(:#{#orderDto.fromDate}, 'dd/MM/yyyy')"
-    		+ " and o.orderDate <= TO_DATE(:#{#orderDto.toDate}, 'dd/MM/yyyy')"
-    		+ " and o.customerName like '%:#{#orderDto.customerName}%'"
+            "where o.orderDate >= TO_DATE(:#{#orderDto.fromDate}, 'yyyy-MM-dd')"
+    		+ " and o.orderDate <= TO_DATE(:#{#orderDto.toDate}, 'yyyy-MM-dd')"
+    		+ " and o.customerName like '%' || :#{#orderDto.customerName} || '%'"
     )
 	Optional<List<Order>> getOrdersFromDateToToDate(@Param("orderDto") OrderDto orderDto);
 }
