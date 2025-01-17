@@ -46,15 +46,18 @@ public class OrderMapper {
 	}
 
 	public static Order mappingOrderDtoToOrder(OrderDto orderDto, Order order) {
-		OrderDetailDto dishResponse = new OrderDetailDto();
-		List<OrderDetailDto> dishes = new ArrayList<>();
 
 		BeanUtils.copyProperties(orderDto, order);
 		BigDecimal totalPrice = orderDto.getOrderDetails().stream().map(dish -> dish.getPrice().multiply(new BigDecimal(dish.getQuantity()))).reduce(BigDecimal.ZERO,  BigDecimal::add);
+		if (totalPrice.compareTo(new BigDecimal(0)) != 1) {
+    		throw new RuntimeException("Tổng giá trị đơn hàng: " + totalPrice + " phải lớn hơn 0. Vui lòng kiểm tra lại!");
+    	}
+		
 		order.setTotalPrice(totalPrice);
 		
 		return order;
 	}
+	
 
 	public static OrderDto mappingToOrderDtoFromSapoOrderDto(SapoOrderDto sapoOrder, OrderDto orderDto) {
 		OrderDetailDto dishResponse = new OrderDetailDto();

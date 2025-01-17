@@ -20,7 +20,6 @@ import com.andy.sapofnbcrawler.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class MenuService {
 
 	private final String URI = SapoConstants.URI;

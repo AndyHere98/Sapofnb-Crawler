@@ -5,6 +5,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.json.JSONArray;
@@ -75,5 +76,9 @@ public class SapoUtils {
 		}
 		
 		return date;
+	}
+	
+	public List<String> extractDishNameFromMenuList () {
+		return null;
 	}
 }

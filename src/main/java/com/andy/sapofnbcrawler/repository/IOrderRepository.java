@@ -4,9 +4,11 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.andy.sapofnbcrawler.dto.OrderDto;
 import com.andy.sapofnbcrawler.entity.Order;
@@ -60,4 +62,15 @@ public interface IOrderRepository extends JpaRepository<Order, Long> {
     		+ " and o.customerName like '%' || :#{#orderDto.customerName} || '%'"
     )
 	Optional<List<Order>> getOrdersFromDateToToDate(@Param("orderDto") OrderDto orderDto);
+
+    
+    @Transactional
+    @Modifying
+    @Query(value = "update Order o set "
+    		+ "o.totalPrice = :#{#updateOrder.totalPrice}, "
+    		+ "o.paymentMethod = :#{#updateOrder.paymentMethod}, "
+    		+ "o.isPaid = :#{#updateOrder.isPaid} "
+    		+ "where o.id = :id"
+    		)
+	void updateOrderById(@Param("id") Long id,@Param("updateOrder") Order updateOrder);
 }

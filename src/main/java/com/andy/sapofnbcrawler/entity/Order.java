@@ -62,15 +62,15 @@ public class Order extends BaseEntity {
     @JsonManagedReference
     private List<OrderDetail> orderDetails = new ArrayList<>();
     
-//    public void addOrderDetail(List<OrderDetail> orderDetailList) {
-//    	orderDetailList.forEach(orderDetail -> orderDetail.setOrder(this));
-//    	this.orderDetails.addAll(orderDetailList);
-//    }
-//    
-//    public void removeOrderDetail(List<OrderDetail> orderDetailList) {
-//    	orderDetailList.forEach(orderDetail -> orderDetail.setOrder(null));
-//    	this.getOrderDetails().clear();
-//    }
+    public void addOrderDetail(List<OrderDetail> orderDetailList) {
+    	orderDetailList.forEach(orderDetail -> orderDetail.setOrder(this));
+    	this.orderDetails.addAll(orderDetailList);
+    }
+    
+    public void removeOrderDetail(List<OrderDetail> orderDetailList) {
+    	orderDetailList.forEach(orderDetail -> orderDetail.setOrder(null));
+    	this.getOrderDetails().clear();
+    }
 //    
 //    @Override
 //    public boolean equals(Object o) {

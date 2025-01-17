@@ -20,6 +20,7 @@ import com.andy.sapofnbcrawler.dto.ErrorResponseDto;
 import com.andy.sapofnbcrawler.dto.MemberOrderDto;
 import com.andy.sapofnbcrawler.dto.OrderDto;
 import com.andy.sapofnbcrawler.dto.ResponseDto;
+import com.andy.sapofnbcrawler.service.IOrderService;
 import com.andy.sapofnbcrawler.service.OrderService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,15 +32,16 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 @Tag(name = "Thông tin đơn hàng REST API", description = "Thông tin về các đơn hàng hiển thị dạng REST API")
 @RestController
 @RequestMapping(path = "${sapo-api.version}/order", produces = { MediaType.APPLICATION_JSON_VALUE })
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class SapoOrderController {
 
-	private final OrderService orderService;
+	private IOrderService orderService;
 
 	@Operation(summary = "Lấy danh sách đơn hàng hôm nay")
 	@ApiResponses({
