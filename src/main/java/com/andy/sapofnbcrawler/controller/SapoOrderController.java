@@ -103,7 +103,7 @@ public class SapoOrderController {
 		}
 	}
 
-	@Operation(summary = "Cập nhật thông tin đơn hàng")
+	@Operation(summary = "Chỉnh sửa thông tin đơn hàng")
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công", content = @Content(schema = @Schema(implementation = ResponseDto.class))),
 		@ApiResponse(responseCode = "417", description = "Thông tin đơn hàng xử lý không như dự kiến, hãy liên lạc dev để check kỹ hơn", content = @Content(schema = @Schema(implementation = ResponseDto.class))),

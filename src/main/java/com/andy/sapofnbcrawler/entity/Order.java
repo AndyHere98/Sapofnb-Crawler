@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,10 +26,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-//@Data
+@Data
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "member_order")
@@ -57,36 +58,35 @@ public class Order extends BaseEntity {
 	@Column(nullable = false, length = 1, columnDefinition = "NUMBER(1,0) DEFAULT 0")
     private int isPaid;
     private Date orderDate;
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "order", orphanRemoval = true)
-//    @JsonManagedReference
-//    @JoinColumn(name = "order_sku")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "order", orphanRemoval = true)
+    @JsonManagedReference
     private List<OrderDetail> orderDetails = new ArrayList<>();
     
-    public void addOrderDetail(List<OrderDetail> orderDetailList) {
-    	orderDetailList.forEach(orderDetail -> orderDetail.setOrder(this));
-    	this.orderDetails.addAll(orderDetailList);
-    }
-    
-    public void removeOrderDetail(List<OrderDetail> orderDetailList) {
-    	orderDetailList.forEach(orderDetail -> orderDetail.setOrder(null));
-    	this.getOrderDetails().clear();
-    }
-    
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Order order = (Order) o;
-        return Objects.equals(id, order.getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-    
-    @Override
-    public String toString() {
-    	return "Set order details: " + List.of(orderDetails);
-    }
+//    public void addOrderDetail(List<OrderDetail> orderDetailList) {
+//    	orderDetailList.forEach(orderDetail -> orderDetail.setOrder(this));
+//    	this.orderDetails.addAll(orderDetailList);
+//    }
+//    
+//    public void removeOrderDetail(List<OrderDetail> orderDetailList) {
+//    	orderDetailList.forEach(orderDetail -> orderDetail.setOrder(null));
+//    	this.getOrderDetails().clear();
+//    }
+//    
+//    @Override
+//    public boolean equals(Object o) {
+//        if (this == o) return true;
+//        if (o == null || getClass() != o.getClass()) return false;
+//        Order order = (Order) o;
+//        return Objects.equals(id, order.getId());
+//    }
+//
+//    @Override
+//    public int hashCode() {
+//        return Objects.hash(id);
+//    }
+//    
+//    @Override
+//    public String toString() {
+//    	return "Set order details: " + List.of(orderDetails);
+//    }
 }

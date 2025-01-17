@@ -15,11 +15,11 @@ import com.andy.sapofnbcrawler.entity.OrderDetail;
 @Repository
 public interface IOrderDetailRepository extends JpaRepository<OrderDetail, Long> {
     
-    List<OrderDetail> findAllByOrder(Order order);
+//    List<OrderDetail> findAllByOrder(Order order);
     
-    @Transactional
-    @Modifying
-    @Query(value = "Delete from OrderDetail o where o.order = :order")
-    void deleteOrderDetailByOrder(@Param("order") Order order);
+//    @Transactional
+//    @Modifying
+//    @Query(value = "Delete from OrderDetail o where o.order = :order")
+//    void deleteOrderDetailByOrder(@Param("order") Order order);
 
 }

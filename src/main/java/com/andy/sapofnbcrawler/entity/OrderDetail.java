@@ -3,6 +3,8 @@ package com.andy.sapofnbcrawler.entity;
 import java.math.BigDecimal;
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -22,17 +24,19 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-//@Data
-public class OrderDetail extends BaseEntity{
+@Data
+public class OrderDetail extends BaseEntity {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
-	private Long orderId;
+	private Long id;
 	@ManyToOne
 	@JoinColumn(name = "order_id", referencedColumnName = "order_sku", nullable = false)
-//	@JsonBackReference
+	@JsonBackReference
 	private Order order;
+//	@Column(name = "order_id")
+//	private String orderId;
 	@Column(name = "dish_name", nullable = false, length = 200)
 	private String name;
 	@Column(nullable = false, length = 2)
@@ -42,21 +46,21 @@ public class OrderDetail extends BaseEntity{
 //	@Column(nullable = false)
 //    private Date orderDate;
 	
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        OrderDetail obj = (OrderDetail) o;
-        return Objects.equals(obj.getOrderId(), orderId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(order.getOrderSku() + name);
-    }
-    
-    @Override
-    public String toString() {
-    	return "Order:====>>> " + order.toString();
-    }
+//    @Override
+//    public boolean equals(Object o) {
+//        if (this == o) return true;
+//        if (o == null || getClass() != o.getClass()) return false;
+//        OrderDetail obj = (OrderDetail) o;
+//        return Objects.equals(obj.getOrderId(), orderId);
+//    }
+//
+//    @Override
+//    public int hashCode() {
+//        return Objects.hash(orderId);
+//    }
+//    
+//    @Override
+//    public String toString() {
+//    	return "Order:====>>> " + order.toString();
+//    }
 }

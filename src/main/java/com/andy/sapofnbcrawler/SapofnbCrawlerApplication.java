@@ -15,7 +15,7 @@ import jakarta.persistence.EntityManagerFactory;
 
 @OpenAPIDefinition(info = @Info(title = "Sapofnb Crawler", description = "Thông tin đặt cơm trưa TSB đến SAPO", version = "v1"), externalDocs = @ExternalDocumentation(description = "No document"))
 @SpringBootApplication
-@EnableTransactionManagement
+//@EnableTransactionManagement
 @EnableJpaAuditing(auditorAwareRef = "auditAware")
 public class SapofnbCrawlerApplication {
 
@@ -24,8 +24,8 @@ public class SapofnbCrawlerApplication {
 	}
 
 
-    @Bean
-    public PlatformTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
-        return new JpaTransactionManager(entityManagerFactory);
-    }
+//    @Bean(name = "transactionManager")
+//    public PlatformTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
+//        return new JpaTransactionManager(entityManagerFactory);
+//    }
 }

@@ -14,7 +14,10 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
@@ -50,9 +53,6 @@ public class OrderService {
     private final IOrderDetailRepository orderDetailRepository;
     
 
-    @PersistenceContext
-    private EntityManager entityManager;
-    
     @Value("${sapo.customer.name}")
     private String customerName;
     @Value("${sapo.customer.phone}")
@@ -139,6 +139,7 @@ public class OrderService {
 		}
         
         orderDetails.forEach(orderDetail -> {
+//        	orderDetail.setOrderId(order.getOrderSku());
         	orderDetail.setOrder(order);
         	String dishName = orderDetail.getName();
         	if (dishes.get(dishName) == null)
@@ -155,19 +156,15 @@ public class OrderService {
         return true;
     }
     
-    @Transactional
-//    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
+//    @Transactional
+//    @Transactional(propagation = Propagation.REQUIRED)
+//    @Async
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     public boolean editOrder(String orderSku, OrderDto request) {
         
     	if (SapoConstants.APP_MODE_PRODUCTION.equalsIgnoreCase(mode)) {
 			return SapoUtils.checkingTimeUp();
     	}
-
-    	// Valid information from order
-//    	BigDecimal totalPrice = request.getTotalPrice();
-//    	BigDecimal sumPriceDishes = request.getOrderDetails().stream().map(dish -> dish.getPrice().multiply(new BigDecimal(dish.getQuantity()))).reduce(BigDecimal.ZERO,  BigDecimal::add);
-//    	
-//    	System.out.println("totalPrice " + totalPrice + " sumPriceDishes " + sumPriceDishes);
     	
     	BigDecimal sumPriceDishes = request.getOrderDetails().stream().map(dish -> dish.getPrice().multiply(new BigDecimal(dish.getQuantity()))).reduce(BigDecimal.ZERO,  BigDecimal::add);
     	
@@ -175,18 +172,15 @@ public class OrderService {
     		throw new RuntimeException("Tổng giá trị đơn hàng: " + sumPriceDishes + " phải lớn hơn 0. Vui lòng kiểm tra lại!");
     	}
     	
-//    	if (totalPrice.compareTo(sumPriceDishes) != 0) {
-//    		throw new RuntimeException("Tổng giá trị đơn hàng: " + totalPrice + " và tổng giá thành dựa trên món ăn đăng ký: " + sumPriceDishes + " không khớp nhau. Vui lòng kiểm tra lại!");
-//    	}
-        
         Order order = orderRepository.findByOrderCode(orderSku).orElseThrow(
         			() -> new ResourceNotFoundException("Đơn đặt hàng", "mã đơn", orderSku)
         		);
-        orderDetailRepository.deleteAll(order.getOrderDetails());
+//        orderDetailRepository.deleteAll(order.getOrderDetails());
 //        order.getOrderDetails().forEach(orderDetail -> orderDetail.setOrder(null));
-        order.getOrderDetails().clear();
+
+        Order updateOrder = OrderMapper.mappingOrderDtoToOrder(request, order);
+//        updateOrder.getOrderDetails().clear();
         
-//        Order orderUpdate = OrderMapper.mappingOrderDtoToOrder(request, order);
 
 //        Order updatedOrder = orderRepository.save(orderUpdate);
 
@@ -203,9 +197,11 @@ public class OrderService {
         for ( OrderDetailDto dish : menu.getDishes()) {
 			dishes.put(dish.getName(), dish.getPrice());
 		}
-        
+
+        updateOrder.getOrderDetails().clear();
         orderDetails.forEach(orderDetail -> {
-//        	orderDetail.setOrder(order);
+//        	orderDetail.setOrderId(orderSku);
+        	orderDetail.setOrder(updateOrder);
         	String dishName = orderDetail.getName();
         	if (dishes.get(dishName) == null)
         		throw new ResourceNotFoundException( String.format("Danh sách menu hôm nay: %s", List.of(todayDishes)), 
@@ -214,18 +210,22 @@ public class OrderService {
         	if (orderDetail.getPrice().compareTo(dishes.get(dishName)) != 0)
         		throw new RuntimeException("Giá món ăn: " + dishName + " hiện tại: " + orderDetail.getPrice() + " đang không khớp với hệ thống: " + dishes.get(dishName) + ". Vui lòng cập nhật lại thông tin mới trước khi đặt đơn!");
         });
-        order.addOrderDetail(orderDetails);
-        order.setTotalPrice(sumPriceDishes);
-//        order.setOrderDetails(orderDetails);
-//        entityManager.merge(order);
-//        orderDetailRepository.saveAll(orderDetails);
-        orderRepository.save(order);
+//        order.addOrderDetail(orderDetails);
+
+//        order.addOrderDetail(orderDetails);
+        updateOrder.setTotalPrice(sumPriceDishes);
+//        updateOrder.setOrderDetails(orderDetails);
+        
+//        updateOrder.addOrderDetail(orderDetails);
+//        orderDetails.forEach(orderDetailRepository::save);
+        orderRepository.save(updateOrder);
+        orderDetails = orderDetailRepository.saveAll(orderDetails);
         
         return true;
     }
     
     private void deleteOrderDetailByOrder(Order order) {
-        orderDetailRepository.deleteOrderDetailByOrder(order);
+//        orderDetailRepository.deleteOrderDetailByOrder(order);
     }
     
     private void deleteOrder(Order order) {
@@ -237,8 +237,8 @@ public class OrderService {
     			() -> new ResourceNotFoundException("Đơn đặt hàng", "mã đơn", orderSku)
     		);
         
-        List<OrderDetail> orderDetails = orderDetailRepository.findAllByOrder(order);
-        order.setOrderDetails(orderDetails);
+//        List<OrderDetail> orderDetails = orderDetailRepository.findAllByOrder(order);
+//        order.setOrderDetails(orderDetails);
         return OrderMapper.mappingToOrderDto(order, new OrderDto());
     }
 
