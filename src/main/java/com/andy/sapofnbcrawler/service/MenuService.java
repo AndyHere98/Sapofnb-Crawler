@@ -17,8 +17,6 @@ import com.andy.sapofnbcrawler.dto.OrderDetailDto;
 import com.andy.sapofnbcrawler.dto.SapoMenuDto;
 import com.andy.sapofnbcrawler.exception.ResourceNotFoundException;
 
-import lombok.RequiredArgsConstructor;
-
 @Service
 public class MenuService {
 

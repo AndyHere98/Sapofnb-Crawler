@@ -10,16 +10,11 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.EnableLoadTimeWeaving;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -38,8 +33,6 @@ import com.andy.sapofnbcrawler.repository.IOrderDetailRepository;
 import com.andy.sapofnbcrawler.repository.IOrderRepository;
 import com.andy.sapofnbcrawler.validation.OrderValidation;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -181,6 +174,7 @@ public class OrderService implements IOrderService {
 //		Order order2 = OrderMapper.mappingOrderDtoToOrder(request, order);
 		Order updateOrder = OrderMapper.mappingOrderDtoToOrder(request, new Order());
 
+		updateOrder.setOrderDate(new java.sql.Date(new Date().getTime()));
 		MenuDto menu = menuService.getMenu();
 
 		List<String> todayDishes = menu.getDishes().stream().map(OrderDetailDto::getName).toList();
@@ -216,13 +210,13 @@ public class OrderService implements IOrderService {
 		return true;
 	}
 
-	private void deleteOrderDetailByOrder(Order order) {
-		orderDetailRepository.deleteOrderDetailByOrder(order);
-	}
-
-	private void deleteOrder(Order order) {
-		orderRepository.delete(order);
-	}
+//	private void deleteOrderDetailByOrder(Order order) {
+//		orderDetailRepository.deleteOrderDetailByOrder(order);
+//	}
+//
+//	private void deleteOrder(Order order) {
+//		orderRepository.delete(order);
+//	}
 
 	@Override
 	public OrderDto getOrderById(String orderSku) {

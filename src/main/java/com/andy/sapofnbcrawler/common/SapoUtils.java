@@ -30,7 +30,7 @@ public class SapoUtils {
 		return json;
 	}
 
-	public static Object convertJsonToObject(String json, Class clazz) {
+	public static Object convertJsonToObject(String json, Class<?> clazz) {
 		ObjectMapper mapper = new ObjectMapper();
 		Object obj = null;
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

@@ -9,8 +9,6 @@ import com.andy.sapofnbcrawler.dto.CustomerInfoDto;
 import com.andy.sapofnbcrawler.entity.CustomerInfo;
 import com.andy.sapofnbcrawler.repository.ICustomerRepository;
 
-import jakarta.transaction.Transactional;
-import jakarta.transaction.Transactional.TxType;
 import lombok.RequiredArgsConstructor;
 
 @Service

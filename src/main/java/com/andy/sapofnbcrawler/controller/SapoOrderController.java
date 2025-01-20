@@ -21,7 +21,6 @@ import com.andy.sapofnbcrawler.dto.MemberOrderDto;
 import com.andy.sapofnbcrawler.dto.OrderDto;
 import com.andy.sapofnbcrawler.dto.ResponseDto;
 import com.andy.sapofnbcrawler.service.IOrderService;
-import com.andy.sapofnbcrawler.service.OrderService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -33,7 +32,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 @Tag(name = "Thông tin đơn hàng REST API", description = "Thông tin về các đơn hàng hiển thị dạng REST API")
 @RestController

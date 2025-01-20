@@ -12,7 +12,6 @@ import com.andy.sapofnbcrawler.dto.OrderDto;
 import com.andy.sapofnbcrawler.entity.Order;
 import com.andy.sapofnbcrawler.exception.ResourceNotFoundException;
 import com.andy.sapofnbcrawler.mapper.OrderMapper;
-import com.andy.sapofnbcrawler.repository.IOrderDetailRepository;
 import com.andy.sapofnbcrawler.repository.IOrderRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -22,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 public class AdminService {
     
     private final IOrderRepository       orderRepository;
-    private final IOrderDetailRepository orderDetailRepository;
+//    private final IOrderDetailRepository orderDetailRepository;
     
     
     public List<OrderDto> summaryTodayOrder() {
@@ -37,9 +36,9 @@ public class AdminService {
     }
     
     public List<MemberOrderDto> summaryTodayOrderByMember(OrderDto orderDto) {
-        SimpleDateFormat sdf     = new SimpleDateFormat("dd/MM/yyyy");
+//        SimpleDateFormat sdf     = new SimpleDateFormat("dd/MM/yyyy");
 //        SimpleDateFormat sdfTime = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-        Date             today   = new Date();
+//        Date             today   = new Date();
         List<Order>      orders  = orderRepository.getOrdersFromDateToToDate(orderDto)
         		.orElseThrow(() -> new ResourceNotFoundException("Danh sách đơn đặt hàng", "ngày đặt ", String.format(" từ %s đến %s", orderDto.getFromDate(), orderDto.getToDate())))
         		;
