@@ -20,11 +20,11 @@ public class AuditAware implements AuditorAware<String>{
 
 	@Override
 	public Optional<String> getCurrentAuditor() {
-//		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//		SecurityContext context = SecurityContextHolder.getContext();
-		CustomerInfo customer = customerRepository.findCustomerByIpAddress(request.getRemoteAddr())
-				.orElseThrow(() -> new RuntimeException("Customer is not registered with ip " + request.getRemoteAddr()));
-		
-		return Optional.of(customer.getCustomerName());
+//		CustomerInfo customer = customerRepository.findCustomerByIpAddress(request.getRemoteAddr())
+//				.orElseThrow(() -> new RuntimeException("Customer is not registered with ip " + request.getRemoteAddr()));
+//		
+//		return Optional.of(customer.getCustomerName());
+
+		return Optional.of("Andy dev");
 	}
 }

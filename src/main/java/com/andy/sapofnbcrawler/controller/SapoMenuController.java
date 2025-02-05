@@ -51,6 +51,6 @@ public class SapoMenuController {
     @GetMapping("/menu")
     public ResponseEntity<?> getMenu() {
     	MenuDto menuResponse = menuService.getMenu();
-		return ResponseEntity.ok(menuResponse);
+		return ResponseEntity.ok(menuResponse.getDishes());
     }
 }

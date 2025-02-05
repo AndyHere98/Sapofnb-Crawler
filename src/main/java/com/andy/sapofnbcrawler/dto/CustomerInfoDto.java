@@ -1,5 +1,10 @@
 package com.andy.sapofnbcrawler.dto;
 
+import java.math.BigDecimal;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotEmpty;
@@ -13,6 +18,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonInclude(value = Include.NON_NULL)
 public class CustomerInfoDto {
 	@Schema(description = "Địa chỉ IP thiết bị")
 	private String ipAddress;
@@ -30,4 +36,13 @@ public class CustomerInfoDto {
 	@Schema(description = "Thông tin email khách hàng")
 	@NotEmpty(message = "Email khách hàng không được để trống")
 	private String customerEmail;
+
+	@Schema(description = "Tổng đơn đã đặt")
+	private int totalOrders;
+
+	@Schema(description = "Tổng số phần đã đặt")
+	private int totalDishes;
+	
+	@Schema(description = "Tổng tiền đã chi")
+	private BigDecimal totalSpending;
 }

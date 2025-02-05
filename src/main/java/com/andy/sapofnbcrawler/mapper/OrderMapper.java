@@ -11,12 +11,15 @@ import java.util.Map;
 
 import org.springframework.beans.BeanUtils;
 
+import com.andy.sapofnbcrawler.dto.CustomerInfoDto;
 import com.andy.sapofnbcrawler.dto.MemberOrderDto;
 import com.andy.sapofnbcrawler.dto.OrderDetailDto;
 import com.andy.sapofnbcrawler.dto.OrderDto;
+import com.andy.sapofnbcrawler.dto.OrderSummaryDto.YearlyOrder.MonthlyOrderSummary;
 import com.andy.sapofnbcrawler.dto.SapoOrderDto;
 import com.andy.sapofnbcrawler.entity.Order;
 import com.andy.sapofnbcrawler.entity.OrderDetail;
+import com.andy.sapofnbcrawler.object.CustomerRank;
 import com.andy.sapofnbcrawler.request.MemberOrderRequest;
 
 public class OrderMapper {
@@ -131,7 +134,7 @@ public class OrderMapper {
 				orderDetailDtoList.add(orderDetailDto);
 			}
 			
-			orderDto.setTotalDish(totalDish);
+			orderDto.setTotalDishes(totalDish);
 			orderDto.setTotalPrice(totalPrice);
 			orderDto.setOrderDetails(orderDetailDtoList);
 			orderDtoList.add(orderDto);
@@ -196,7 +199,7 @@ public class OrderMapper {
 				
 				orderDto.setOrderSku(order.getOrderSku());
 				orderDto.setOrderDate(new SimpleDateFormat("dd/MM/yyyy").format(order.getOrderDate()));
-				orderDto.setTotalDish(orderQuantity);
+				orderDto.setTotalDishes(orderQuantity);
 				orderDto.setTotalPrice(orderPrice);
 				orderDto.setCreatedOn(Timestamp.valueOf(order.getCreatedDate()).getTime());
 				orderDto.setModifiedOn(Timestamp
@@ -227,5 +230,11 @@ public class OrderMapper {
 		OrderDetail orderDetail = new OrderDetail();
 		BeanUtils.copyProperties(request, orderDetail);
 		return orderDetail;
+	}
+	
+	public static CustomerInfoDto mappingCustomerInfoDto(CustomerRank customerRank) {
+		CustomerInfoDto customerInfoDto = new CustomerInfoDto();
+		BeanUtils.copyProperties(customerRank, customerInfoDto);
+		return customerInfoDto;
 	}
 }

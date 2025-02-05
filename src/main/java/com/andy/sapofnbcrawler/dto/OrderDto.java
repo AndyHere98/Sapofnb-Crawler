@@ -62,7 +62,7 @@ public class OrderDto {
 	private String orderDate;
 
 	@Schema(description = "Tổng số phần đã đặt")
-	private int totalDish;
+	private int totalDishes;
 
 	@Schema(description = "Tổng giá trị đơn hàng")
 	private BigDecimal totalPrice;

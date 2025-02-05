@@ -3,6 +3,8 @@ package com.andy.sapofnbcrawler.common;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -80,5 +82,22 @@ public class SapoUtils {
 	
 	public List<String> extractDishNameFromMenuList () {
 		return null;
+	}
+	
+//	public static LocalDate convertDateToLocaleDate(Date date) {
+//		System.out.println("date.toInstant() " + date.toInstant());
+//		System.out.println("ZoneId.systemDefault() " + ZoneId.systemDefault());
+//		return LocalDate.ofInstant(
+//				date.toInstant(), ZoneId.systemDefault());
+//	}
+	
+	public static LocalDate convertDateToLocaleDate(Date dateToConvert) {
+	    return dateToConvert.toInstant()
+	      .atZone(ZoneId.systemDefault())
+	      .toLocalDate();
+	}
+	
+	public static Date convertToDateViaSqlDate(LocalDate dateToConvert) {
+	    return java.sql.Date.valueOf(dateToConvert);
 	}
 }

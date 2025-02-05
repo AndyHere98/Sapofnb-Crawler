@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.andy.sapofnbcrawler.dto.ErrorResponseDto;
 import com.andy.sapofnbcrawler.dto.MemberOrderDto;
 import com.andy.sapofnbcrawler.dto.OrderDto;
+import com.andy.sapofnbcrawler.dto.OrderSummaryDto;
 import com.andy.sapofnbcrawler.dto.ResponseDto;
 import com.andy.sapofnbcrawler.service.IOrderService;
 
@@ -35,7 +36,7 @@ import lombok.AllArgsConstructor;
 
 @Tag(name = "Thông tin đơn hàng REST API", description = "Thông tin về các đơn hàng hiển thị dạng REST API")
 @RestController
-@RequestMapping(path = "${sapo-api.version}/order", produces = { MediaType.APPLICATION_JSON_VALUE })
+@RequestMapping(path = "${sapo-api.version}/orders", produces = { MediaType.APPLICATION_JSON_VALUE })
 @AllArgsConstructor
 public class SapoOrderController {
 
@@ -159,5 +160,18 @@ public class SapoOrderController {
 			commonResponse.setMessage("Đơn hàng xoá không thành công. Hãy check lại với Admin");
 			return ResponseEntity.internalServerError().body(commonResponse);
 		}
+	}
+
+	@Operation(summary = "Tổng hợp đơn hàng")
+	@ApiResponses({
+		@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công", content = @Content(schema = @Schema(implementation = ResponseDto.class))),
+		@ApiResponse(responseCode = "417", description = "Thông tin đơn hàng xử lý không như dự kiến, hãy liên lạc dev để check kỹ hơn", content = @Content(schema = @Schema(implementation = ResponseDto.class))),
+		@ApiResponse(responseCode = "500", description = "Xử lý xoá thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
+	@GetMapping("/summary")
+	public ResponseEntity<OrderSummaryDto> summaryOrder() {
+		OrderSummaryDto orderSummary = new OrderSummaryDto();
+		
+		orderSummary = orderService.summaryOrder();
+		return ResponseEntity.ok(orderSummary);
 	}
 }

@@ -1,8 +1,13 @@
 package com.andy.sapofnbcrawler.service;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -21,14 +26,23 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.andy.sapofnbcrawler.common.SapoConstants;
 import com.andy.sapofnbcrawler.common.SapoUtils;
+import com.andy.sapofnbcrawler.dto.CustomerInfoDto;
 import com.andy.sapofnbcrawler.dto.MenuDto;
 import com.andy.sapofnbcrawler.dto.OrderDetailDto;
 import com.andy.sapofnbcrawler.dto.OrderDto;
+import com.andy.sapofnbcrawler.dto.OrderSummaryDto;
 import com.andy.sapofnbcrawler.dto.SapoOrderDto;
+import com.andy.sapofnbcrawler.dto.OrderSummaryDto.DailyOrderSummary;
+import com.andy.sapofnbcrawler.dto.OrderSummaryDto.YearlyOrder;
+import com.andy.sapofnbcrawler.dto.OrderSummaryDto.YearlyOrder.MonthlyOrderSummary;
+import com.andy.sapofnbcrawler.entity.CustomerInfo;
+//import com.andy.sapofnbcrawler.dto.OrderSummaryDto.MonthlyOrderSummary;
 import com.andy.sapofnbcrawler.entity.Order;
 import com.andy.sapofnbcrawler.entity.OrderDetail;
 import com.andy.sapofnbcrawler.exception.ResourceNotFoundException;
 import com.andy.sapofnbcrawler.mapper.OrderMapper;
+import com.andy.sapofnbcrawler.object.CustomerRank;
+import com.andy.sapofnbcrawler.repository.ICustomerRepository;
 import com.andy.sapofnbcrawler.repository.IOrderDetailRepository;
 import com.andy.sapofnbcrawler.repository.IOrderRepository;
 import com.andy.sapofnbcrawler.validation.OrderValidation;
@@ -45,6 +59,8 @@ public class OrderService implements IOrderService {
 	private final MenuService menuService;
 	private final IOrderRepository orderRepository;
 	private final IOrderDetailRepository orderDetailRepository;
+	
+	private final ICustomerRepository customerRepository;
 
 	@Value("${sapo.customer.name}")
 	private String customerName;
@@ -108,7 +124,6 @@ public class OrderService implements IOrderService {
 		}
 
 		// Valid information from order
-//    	BigDecimal totalPrice = request.getTotalPrice();
 		BigDecimal sumPriceDishes = request.getOrderDetails().stream()
 				.map(dish -> dish.getPrice().multiply(new BigDecimal(dish.getQuantity())))
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -138,6 +153,8 @@ public class OrderService implements IOrderService {
 		for (OrderDetailDto dish : menu.getDishes()) {
 			dishes.put(dish.getName(), dish.getPrice());
 		}
+		
+		int totalDishes = request.getOrderDetails().stream().mapToInt(orderDetail -> orderDetail.getQuantity()).sum();
 
 		orderDetails.forEach(orderDetail -> {
 //        	orderDetail.setOrderId(order.getOrderSku());
@@ -152,7 +169,18 @@ public class OrderService implements IOrderService {
 						+ " đang không khớp với hệ thống: " + dishes.get(dishName)
 						+ ". Vui lòng cập nhật lại thông tin mới trước khi đặt đơn!");
 		});
-
+		
+		CustomerInfo customerInfo = new CustomerInfo();
+		customerInfo.setCustomerName(request.getCustomerName());
+		customerInfo.setCustomerPhone(request.getCustomerPhone());
+		customerInfo.setCustomerEmail(request.getCustomerEmail());
+		customerInfo.setIpAddress("1231");
+		customerRepository.save(customerInfo);
+		
+		order.setCustomerId(customerInfo);
+		order.setTotalDishes(totalDishes);
+		
+		
 		orderRepository.save(order);
 		orderDetails = orderDetailRepository.saveAll(orderDetails);
 
@@ -160,7 +188,6 @@ public class OrderService implements IOrderService {
 	}
 
 	@Override
-//	@Transactional
 	public boolean editOrder(String orderSku, OrderDto request) {
 
 		if (SapoConstants.APP_MODE_PRODUCTION.equalsIgnoreCase(mode)) {
@@ -171,7 +198,6 @@ public class OrderService implements IOrderService {
 				.orElseThrow(() -> new ResourceNotFoundException("Đơn đặt hàng", "mã đơn", orderSku));
 
 		orderRepository.deleteById(order.getId());
-//		Order order2 = OrderMapper.mappingOrderDtoToOrder(request, order);
 		Order updateOrder = OrderMapper.mappingOrderDtoToOrder(request, new Order());
 
 		updateOrder.setOrderDate(new java.sql.Date(new Date().getTime()));
@@ -202,21 +228,10 @@ public class OrderService implements IOrderService {
 						+ " đang không khớp với hệ thống: " + dishes.get(dishName)
 						+ ". Vui lòng cập nhật lại thông tin mới trước khi đặt đơn!");
 		});
-//		order.addOrderDetail(orderDetails);
-//		order.setOrderDetails(orderDetails);
-
 		orderRepository.save(updateOrder);
 		orderDetails = orderDetailRepository.saveAll(orderDetails);
 		return true;
 	}
-
-//	private void deleteOrderDetailByOrder(Order order) {
-//		orderDetailRepository.deleteOrderDetailByOrder(order);
-//	}
-//
-//	private void deleteOrder(Order order) {
-//		orderRepository.delete(order);
-//	}
 
 	@Override
 	public OrderDto getOrderById(String orderSku) {
@@ -268,6 +283,116 @@ public class OrderService implements IOrderService {
 		List<OrderDto> orderDtoList = orderList.stream()
 				.map(order -> OrderMapper.mappingToOrderDto(order, new OrderDto())).toList();
 		return orderDtoList;
+	}
+
+	@Override
+	public OrderSummaryDto summaryOrder() {
+		OrderSummaryDto orderSummaryDto = new OrderSummaryDto();
+		
+		DailyOrderSummary todayOrders = new OrderSummaryDto().new DailyOrderSummary();
+		YearlyOrder yearlyOrders = new OrderSummaryDto().new YearlyOrder();
+		MonthlyOrderSummary monthOrders = new OrderSummaryDto().new YearlyOrder().new MonthlyOrderSummary();
+		
+		List<DailyOrderSummary> todayOrderList = new ArrayList<>();
+		List<YearlyOrder> yearOrdersList = new ArrayList<>();
+		List<MonthlyOrderSummary> monthOrderList = new ArrayList<>();
+		
+		Map<String, List<Order>> monthOrdersMap = new HashMap<>();
+		
+		List<String> yearList = orderRepository.getDistinctYearOrder();
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("MM");
+		
+		if (yearList.isEmpty()) throw new ResourceNotFoundException("Order","order date", null);
+		
+		for (String year : yearList) {
+			monthOrdersMap = new HashMap<>();
+			monthOrderList = new ArrayList<>();
+			int yearOrders = 0;
+			int yearDishes = 0;
+			BigDecimal yearSpending = BigDecimal.ZERO;
+			List<Order> yearOrderList = orderRepository.getOrdersInYear(year);
+			yearOrders = yearOrderList.size();
+			
+			// Mapping to monthOrderMap
+			for (Order order : yearOrderList) {
+				yearDishes += order.getTotalDishes();
+				yearSpending = yearSpending.add(order.getTotalPrice());
+				
+				String month = String.valueOf(sdf.format(order.getOrderDate()));
+				
+				if (monthOrdersMap.get(month) == null) {
+					List<Order> newOrderList = new ArrayList<>();
+					newOrderList.add(order);
+					monthOrdersMap.put(month, newOrderList);
+				} else {
+					monthOrdersMap.get(month).add(order);
+				}
+			}
+			
+			// Mapper month
+			for (Map.Entry<String, List<Order>> monthMap : monthOrdersMap.entrySet()) {
+				int monthTotalOrders = monthMap.getValue().size();
+				int monthDishes = 0;
+				BigDecimal monthSpending = BigDecimal.ZERO;
+				
+				List<Order> monthOrdersList = monthMap.getValue();
+				for (Order order : monthOrdersList) {
+					monthDishes += order.getTotalDishes();
+					monthSpending = monthSpending.add(order.getTotalPrice());
+				}
+				
+				List<CustomerRank> customerRanks = getRankingCustomer(monthMap.getValue().get(0).getOrderDate().getTime(), SapoConstants.UNIT_MONTH);
+				monthOrders = new OrderSummaryDto().new YearlyOrder().new MonthlyOrderSummary();
+				monthOrders.setMonth(monthMap.getKey());
+
+				monthOrders.setTotalDish(monthDishes);
+				monthOrders.setTotalOrders(monthTotalOrders);
+				monthOrders.setTotalSpending(monthSpending);
+				
+				monthOrders.setOrderList(monthMap.getValue().stream().map(monthOrder -> OrderMapper.mappingToOrderDto(monthOrder, new OrderDto())).toList());
+				List<CustomerInfoDto> customerRankList = customerRanks.stream().map(OrderMapper::mappingCustomerInfoDto).toList();
+				monthOrders.setTopCustomer(customerRankList);
+				
+				monthOrderList.add(monthOrders);
+			}
+			
+			yearlyOrders.setYear(year);
+			yearlyOrders.setTotalDish(yearDishes);
+			yearlyOrders.setTotalOrders(yearOrders);
+			yearlyOrders.setTotalSpending(yearSpending);
+			yearlyOrders.setMonthlyOrderSummary(monthOrderList);
+			yearOrdersList.add(yearlyOrders);
+		}
+		
+		orderSummaryDto.setYearlyOrders(yearOrdersList);
+		return orderSummaryDto;
+	}
+	
+	public List<CustomerRank> getRankingCustomer(long time, String unitCheck){
+		Date dateInput = new Date(time);
+		List<CustomerRank> rankList = new ArrayList<>();
+		Date start = new Date();
+		Date end = new Date();
+		LocalDate dateConvert = SapoUtils.convertDateToLocaleDate(dateInput);
+		switch (unitCheck) {
+		case SapoConstants.UNIT_MONTH: {
+			start = SapoUtils.convertToDateViaSqlDate(dateConvert.withDayOfMonth(1));
+			end = SapoUtils.convertToDateViaSqlDate(dateConvert.withDayOfMonth(dateConvert.lengthOfMonth()));
+			break;
+		}
+		case SapoConstants.UNIT_YEAR: {
+			start = SapoUtils.convertToDateViaSqlDate(dateConvert.withDayOfYear(1));
+			end = SapoUtils.convertToDateViaSqlDate(dateConvert.withDayOfYear(dateConvert.lengthOfYear()));
+			break;
+		}
+		default:
+			throw new IllegalArgumentException("Unexpected value: " + unitCheck);
+		}
+//		List<Map<String, CustomerRank>> objList =  orderRepository.rankCustomerInMonthAndYear(start, end);
+		rankList =  orderRepository.rankCustomerInMonthAndYear(start, end);
+		
+		return rankList;
 	}
 
 }
