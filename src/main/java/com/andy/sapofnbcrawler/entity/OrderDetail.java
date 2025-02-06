@@ -2,6 +2,8 @@ package com.andy.sapofnbcrawler.entity;
 
 import java.math.BigDecimal;
 
+import org.hibernate.annotations.Nationalized;
+
 import com.andy.sapofnbcrawler.object.DailySummaryOrders;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
@@ -29,11 +31,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @Table(name = "order_detail")
-//@Data
-@NamedNativeQuery(
-    name = "GetDailySummaryOrder",
-    query =
-		"select "
+// @Data
+@NamedNativeQuery(name = "GetDailySummaryOrder", query = "select "
 		+ "o.dish_name as dishName "
 		+ ", sum(o.quantity) as quantity "
 		+ ", sum(o.price) as sumPrice "
@@ -41,22 +40,14 @@ import lombok.Setter;
 		+ "join member_order m on (m.order_sku = o.order_id)"
 		+ "where m.order_date = :orderDate "
 		+ "group by (o.dish_name)"
-		+ "order by dishName asc",
-    resultSetMapping = "DailySummaryOrderMapping"
-)
-@SqlResultSetMapping(
-    name = "DailySummaryOrderMapping",
-    classes = @ConstructorResult(
-        targetClass = DailySummaryOrders.class,
-        columns = {
-            @ColumnResult(name = "dishName", type = String.class),
-            @ColumnResult(name = "quantity", type = Integer.class),
-            @ColumnResult(name = "sumPrice", type = BigDecimal.class),
-        }
-    )
-)
+		+ "order by dishName asc", resultSetMapping = "DailySummaryOrderMapping")
+@SqlResultSetMapping(name = "DailySummaryOrderMapping", classes = @ConstructorResult(targetClass = DailySummaryOrders.class, columns = {
+		@ColumnResult(name = "dishName", type = String.class),
+		@ColumnResult(name = "quantity", type = Integer.class),
+		@ColumnResult(name = "sumPrice", type = BigDecimal.class),
+}))
 public class OrderDetail extends BaseEntity {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
@@ -66,6 +57,7 @@ public class OrderDetail extends BaseEntity {
 	@JsonBackReference
 	private Order order;
 	@Column(name = "dish_name", nullable = false, length = 200)
+	@Nationalized
 	private String name;
 	@Column(nullable = false, length = 2)
 	private int quantity;

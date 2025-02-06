@@ -58,7 +58,7 @@ public class OrderService implements IOrderService {
 	private final MenuService menuService;
 	private final IOrderRepository orderRepository;
 	private final IOrderDetailRepository orderDetailRepository;
-	
+
 	private final ICustomerRepository customerRepository;
 
 	@Value("${sapo.customer.name}")
@@ -114,7 +114,8 @@ public class OrderService implements IOrderService {
 
 	}
 
-//    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
+	// @Transactional(propagation = Propagation.REQUIRED, isolation =
+	// Isolation.READ_COMMITTED)
 	@Override
 	public boolean placeOrder(OrderDto request) {
 
@@ -152,11 +153,11 @@ public class OrderService implements IOrderService {
 		for (OrderDetailDto dish : menu.getDishes()) {
 			dishes.put(dish.getName(), dish.getPrice());
 		}
-		
+
 		int totalDishes = request.getOrderDetails().stream().mapToInt(orderDetail -> orderDetail.getQuantity()).sum();
 
 		orderDetails.forEach(orderDetail -> {
-//        	orderDetail.setOrderId(order.getOrderSku());
+			// orderDetail.setOrderId(order.getOrderSku());
 			orderDetail.setOrder(order);
 			String dishName = orderDetail.getName();
 			if (dishes.get(dishName) == null)
@@ -168,18 +169,17 @@ public class OrderService implements IOrderService {
 						+ " đang không khớp với hệ thống: " + dishes.get(dishName)
 						+ ". Vui lòng cập nhật lại thông tin mới trước khi đặt đơn!");
 		});
-		
+
 		CustomerInfo customerInfo = new CustomerInfo();
 		customerInfo.setCustomerName(request.getCustomerName());
 		customerInfo.setCustomerPhone(request.getCustomerPhone());
 		customerInfo.setCustomerEmail(request.getCustomerEmail());
 		customerInfo.setIpAddress("1231");
 		customerRepository.save(customerInfo);
-		
+
 		order.setCustomerId(customerInfo);
 		order.setTotalDishes(totalDishes);
-		
-		
+
 		orderRepository.save(order);
 		orderDetails = orderDetailRepository.saveAll(orderDetails);
 
@@ -195,6 +195,9 @@ public class OrderService implements IOrderService {
 
 		Order order = orderRepository.findByOrderCode(orderSku)
 				.orElseThrow(() -> new ResourceNotFoundException("Đơn đặt hàng", "mã đơn", orderSku));
+
+		String currentOrderSku = order.getOrderSku();
+		CustomerInfo oldCustomer = order.getCustomerId();
 
 		orderRepository.deleteById(order.getId());
 		Order updateOrder = OrderMapper.mappingOrderDtoToOrder(request, new Order());
@@ -227,6 +230,8 @@ public class OrderService implements IOrderService {
 						+ " đang không khớp với hệ thống: " + dishes.get(dishName)
 						+ ". Vui lòng cập nhật lại thông tin mới trước khi đặt đơn!");
 		});
+		updateOrder.setOrderSku(currentOrderSku);
+		updateOrder.setCustomerId(oldCustomer);
 		orderRepository.save(updateOrder);
 		orderDetails = orderDetailRepository.saveAll(orderDetails);
 		return true;
@@ -237,12 +242,13 @@ public class OrderService implements IOrderService {
 		Order order = orderRepository.findByOrderCode(orderSku)
 				.orElseThrow(() -> new ResourceNotFoundException("Đơn đặt hàng", "mã đơn", orderSku));
 
-//        List<OrderDetail> orderDetails = orderDetailRepository.findAllByOrder(order);
-//        order.setOrderDetails(orderDetails);
+		// List<OrderDetail> orderDetails = orderDetailRepository.findAllByOrder(order);
+		// order.setOrderDetails(orderDetails);
 		return OrderMapper.mappingToOrderDto(order, new OrderDto());
 	}
 
-//    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
+	// @Transactional(propagation = Propagation.REQUIRED, isolation =
+	// Isolation.READ_COMMITTED)
 	@Override
 	public boolean deleteOrder(String orderSku) {
 
@@ -252,14 +258,14 @@ public class OrderService implements IOrderService {
 
 		Order order = orderRepository.findByOrderCode(orderSku)
 				.orElseThrow(() -> new ResourceNotFoundException("Đơn đặt hàng", "mã đơn", orderSku));
-//        orderDetailRepository.deleteOrderDetailByOrder(order);
+		// orderDetailRepository.deleteOrderDetailByOrder(order);
 		orderRepository.deleteById(order.getId());
 		return true;
 
-//        OrderResponse orderResponse = new OrderResponse();
-//        orderResponse.setOrderSku(order.getOrderCode());
-//        orderResponse.setTotalPrice(order.getTotalPrice());
-//        return orderResponse;
+		// OrderResponse orderResponse = new OrderResponse();
+		// orderResponse.setOrderSku(order.getOrderCode());
+		// orderResponse.setTotalPrice(order.getTotalPrice());
+		// return orderResponse;
 	}
 
 	@Override
@@ -283,7 +289,7 @@ public class OrderService implements IOrderService {
 				.map(order -> OrderMapper.mappingToOrderDto(order, new OrderDto())).toList();
 		return orderDtoList;
 	}
-	
+
 	public List<OrderDto> getOrderByOrderDate(java.sql.Date orderDate) {
 		List<Order> orderList = orderRepository.getOrderByOrderDate(orderDate).get();
 		List<OrderDto> orderDtoList = orderList.stream()
@@ -294,32 +300,33 @@ public class OrderService implements IOrderService {
 	@Override
 	public OrderSummaryDto summaryOrder() {
 		OrderSummaryDto orderSummaryDto = new OrderSummaryDto();
-		
+
 		DailyOrderSummary todayOrders = new OrderSummaryDto().new DailyOrderSummary();
 		YearlyOrder yearlyOrders = new OrderSummaryDto().new YearlyOrder();
 		MonthlyOrderSummary monthOrders = new OrderSummaryDto().new YearlyOrder().new MonthlyOrderSummary();
-		
+
 		List<DailyOrderSummary> todayOrderList = new ArrayList<>();
 		List<YearlyOrder> yearOrdersList = new ArrayList<>();
 		List<MonthlyOrderSummary> monthOrderList = new ArrayList<>();
 		Map<String, List<Order>> monthOrdersMap = new HashMap<>();
-		
+
 		java.sql.Date today = new java.sql.Date(System.currentTimeMillis());
 		List<DailySummaryOrders> dailyOrders = orderDetailRepository.getDailySummaryOrder(today);
 		todayOrderList = dailyOrders.stream().map(OrderMapper::mappingDailyOrderSummary).toList();
 		orderSummaryDto.setDailyOrders(todayOrderList);
-		
+
 		List<OrderDto> todayOrdersList = getOrderByOrderDate(today);
 		orderSummaryDto.setTodayOrders(todayOrdersList);
-		
+
 		List<String> yearList = orderRepository.getDistinctYearOrder();
-		
+
 		SimpleDateFormat sdf = new SimpleDateFormat("MM");
-		
+
 		if (yearList.isEmpty()) {
 			return new OrderSummaryDto();
-		};
-		
+		}
+		;
+
 		for (String year : yearList) {
 			monthOrdersMap = new HashMap<>();
 			monthOrderList = new ArrayList<>();
@@ -328,14 +335,14 @@ public class OrderService implements IOrderService {
 			BigDecimal yearSpending = BigDecimal.ZERO;
 			List<Order> yearOrderList = orderRepository.getOrdersInYear(year);
 			yearOrders = yearOrderList.size();
-			
+
 			// Mapping to monthOrderMap
 			for (Order order : yearOrderList) {
 				yearDishes += order.getTotalDishes();
 				yearSpending = yearSpending.add(order.getTotalPrice());
-				
+
 				String month = String.valueOf(sdf.format(order.getOrderDate()));
-				
+
 				if (monthOrdersMap.get(month) == null) {
 					List<Order> newOrderList = new ArrayList<>();
 					newOrderList.add(order);
@@ -344,34 +351,37 @@ public class OrderService implements IOrderService {
 					monthOrdersMap.get(month).add(order);
 				}
 			}
-			
+
 			// Mapper month
 			for (Map.Entry<String, List<Order>> monthMap : monthOrdersMap.entrySet()) {
 				int monthTotalOrders = monthMap.getValue().size();
 				int monthDishes = 0;
 				BigDecimal monthSpending = BigDecimal.ZERO;
-				
+
 				List<Order> monthOrdersList = monthMap.getValue();
 				for (Order order : monthOrdersList) {
 					monthDishes += order.getTotalDishes();
 					monthSpending = monthSpending.add(order.getTotalPrice());
 				}
-				
-				List<CustomerRank> customerRanks = getRankingCustomer(monthMap.getValue().get(0).getOrderDate().getTime(), SapoConstants.UNIT_MONTH);
+
+				List<CustomerRank> customerRanks = getRankingCustomer(monthMap.getValue().get(0).getOrderDate().getTime(),
+						SapoConstants.UNIT_MONTH);
 				monthOrders = new OrderSummaryDto().new YearlyOrder().new MonthlyOrderSummary();
 				monthOrders.setMonth(monthMap.getKey());
 
 				monthOrders.setTotalDish(monthDishes);
 				monthOrders.setTotalOrders(monthTotalOrders);
 				monthOrders.setTotalSpending(monthSpending);
-				
-				monthOrders.setOrderList(monthMap.getValue().stream().map(monthOrder -> OrderMapper.mappingToOrderDto(monthOrder, new OrderDto())).toList());
-				List<CustomerInfoDto> customerRankList = customerRanks.stream().map(OrderMapper::mappingCustomerInfoDto).toList();
+
+				monthOrders.setOrderList(monthMap.getValue().stream()
+						.map(monthOrder -> OrderMapper.mappingToOrderDto(monthOrder, new OrderDto())).toList());
+				List<CustomerInfoDto> customerRankList = customerRanks.stream().map(OrderMapper::mappingCustomerInfoDto)
+						.toList();
 				monthOrders.setTopCustomer(customerRankList);
-				
+
 				monthOrderList.add(monthOrders);
 			}
-			
+
 			yearlyOrders.setYear(year);
 			yearlyOrders.setTotalDish(yearDishes);
 			yearlyOrders.setTotalOrders(yearOrders);
@@ -379,34 +389,35 @@ public class OrderService implements IOrderService {
 			yearlyOrders.setMonthlyOrderSummary(monthOrderList);
 			yearOrdersList.add(yearlyOrders);
 		}
-		
+
 		orderSummaryDto.setYearlyOrders(yearOrdersList);
 		return orderSummaryDto;
 	}
-	
-	public List<CustomerRank> getRankingCustomer(long time, String unitCheck){
+
+	public List<CustomerRank> getRankingCustomer(long time, String unitCheck) {
 		Date dateInput = new Date(time);
 		List<CustomerRank> rankList = new ArrayList<>();
 		Date start = new Date();
 		Date end = new Date();
 		LocalDate dateConvert = SapoUtils.convertDateToLocaleDate(dateInput);
 		switch (unitCheck) {
-		case SapoConstants.UNIT_MONTH: {
-			start = SapoUtils.convertToDateViaSqlDate(dateConvert.withDayOfMonth(1));
-			end = SapoUtils.convertToDateViaSqlDate(dateConvert.withDayOfMonth(dateConvert.lengthOfMonth()));
-			break;
+			case SapoConstants.UNIT_MONTH: {
+				start = SapoUtils.convertToDateViaSqlDate(dateConvert.withDayOfMonth(1));
+				end = SapoUtils.convertToDateViaSqlDate(dateConvert.withDayOfMonth(dateConvert.lengthOfMonth()));
+				break;
+			}
+			case SapoConstants.UNIT_YEAR: {
+				start = SapoUtils.convertToDateViaSqlDate(dateConvert.withDayOfYear(1));
+				end = SapoUtils.convertToDateViaSqlDate(dateConvert.withDayOfYear(dateConvert.lengthOfYear()));
+				break;
+			}
+			default:
+				throw new IllegalArgumentException("Unexpected value: " + unitCheck);
 		}
-		case SapoConstants.UNIT_YEAR: {
-			start = SapoUtils.convertToDateViaSqlDate(dateConvert.withDayOfYear(1));
-			end = SapoUtils.convertToDateViaSqlDate(dateConvert.withDayOfYear(dateConvert.lengthOfYear()));
-			break;
-		}
-		default:
-			throw new IllegalArgumentException("Unexpected value: " + unitCheck);
-		}
-//		List<Map<String, CustomerRank>> objList =  orderRepository.rankCustomerInMonthAndYear(start, end);
-		rankList =  orderRepository.rankCustomerInMonthAndYear(start, end);
-		
+		// List<Map<String, CustomerRank>> objList =
+		// orderRepository.rankCustomerInMonthAndYear(start, end);
+		rankList = orderRepository.rankCustomerInMonthAndYear(start, end);
+
 		return rankList;
 	}
 

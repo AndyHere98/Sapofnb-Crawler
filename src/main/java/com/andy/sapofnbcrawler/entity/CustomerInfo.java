@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.annotations.Nationalized;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 
@@ -21,11 +22,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
-@Tag(
-	name = "Thông tin khách hàng",
-	description = "Nơi lưu trữ thông tin khách hàng"	
-)
+@Tag(name = "Thông tin khách hàng", description = "Nơi lưu trữ thông tin khách hàng")
 @Entity
 @Data
 @AllArgsConstructor
@@ -36,21 +33,22 @@ public class CustomerInfo {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	@Column(nullable = false, length = 100)
+	@Nationalized
 	private String customerName;
 	@Column(nullable = false, length = 20)
-    private String customerPhone;
+	private String customerPhone;
 	@Column(nullable = false, length = 100)
-    private String customerEmail;
+	private String customerEmail;
 	@Column(nullable = false)
 	private String ipAddress;
 
-    @CreatedDate
-    private LocalDateTime createdDate;
-    
-    @CreatedBy
-    private String createdBy;
+	@CreatedDate
+	private LocalDateTime createdDate;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "customerId", orphanRemoval = true)
-    @JsonManagedReference
-    private List<Order> orders = new ArrayList<>();
+	@CreatedBy
+	private String createdBy;
+
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "customerId", orphanRemoval = true)
+	@JsonManagedReference
+	private List<Order> orders = new ArrayList<>();
 }

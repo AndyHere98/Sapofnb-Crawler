@@ -44,50 +44,52 @@ public class SapoOrderController {
 
 	@Operation(summary = "Lấy danh sách đơn hàng hôm nay")
 	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công", content = @Content(schema = @Schema(implementation = OrderDto.class))),
-//    	@ApiResponse(
-//    		responseCode = "417", description = "Thông tin đơn hàng nhận về không như dự kiến, hãy liên lạc dev để check kỹ hơn",
-//			content = @Content(
-//				schema = @Schema(implementation = CommonResponse.class)
-//			)
-//		),
-		@ApiResponse(responseCode = "500", description = "Lấy thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
+			@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công", content = @Content(schema = @Schema(implementation = OrderDto.class))),
+			// @ApiResponse(
+			// responseCode = "417", description = "Thông tin đơn hàng nhận về không như dự
+			// kiến, hãy liên lạc dev để check kỹ hơn",
+			// content = @Content(
+			// schema = @Schema(implementation = CommonResponse.class)
+			// )
+			// ),
+			@ApiResponse(responseCode = "500", description = "Lấy thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
 	@GetMapping("/cart")
 	public ResponseEntity<OrderDto> getCartOrder() {
 		OrderDto cartOrder = new OrderDto();
 		cartOrder = orderService.checkTodayOrder();
 		return ResponseEntity.ok(cartOrder);
 	}
-	
+
 	@Operation(summary = "Lấy danh sách đơn hàng")
 	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công", content = @Content(schema = @Schema(implementation = OrderDto.class))),
-		@ApiResponse(responseCode = "500", description = "Lấy thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
+			@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công", content = @Content(schema = @Schema(implementation = OrderDto.class))),
+			@ApiResponse(responseCode = "500", description = "Lấy thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
 	@GetMapping("/search")
-	public ResponseEntity<List<OrderDto>> getOrdersWithCondition(@RequestParam("customerName") String customerName, @RequestParam("fromDate") String fromDate, @RequestParam("toDate") String toDate) {
+	public ResponseEntity<List<OrderDto>> getOrdersWithCondition(@RequestParam("customerName") String customerName,
+			@RequestParam("fromDate") String fromDate, @RequestParam("toDate") String toDate) {
 		List<OrderDto> allOrder = new ArrayList<>();
-		
+
 		allOrder = orderService.getOrdersWithCondition(customerName, fromDate, toDate);
 		return ResponseEntity.ok(allOrder);
 	}
-	
+
 	@Operation(summary = "Lấy danh sách đơn hàng")
 	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công", content = @Content(schema = @Schema(implementation = OrderDto.class))),
-		@ApiResponse(responseCode = "500", description = "Lấy thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
+			@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công", content = @Content(schema = @Schema(implementation = OrderDto.class))),
+			@ApiResponse(responseCode = "500", description = "Lấy thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
 	@GetMapping("/all")
 	public ResponseEntity<List<OrderDto>> getAllOrders() {
 		List<OrderDto> allOrder = new ArrayList<>();
-		
+
 		allOrder = orderService.getAllOrders();
 		return ResponseEntity.ok(allOrder);
 	}
 
 	@Operation(summary = "Đặt đơn hàng")
 	@ApiResponses({
-		@ApiResponse(responseCode = "201", description = "Yêu cầu được thực hiện thành công", content = @Content(schema = @Schema(implementation = OrderDto.class))),
-		@ApiResponse(responseCode = "417", description = "Thông tin đơn hàng nhận về không như dự kiến, hãy liên lạc dev để check kỹ hơn", content = @Content(schema = @Schema(implementation = ResponseDto.class))),
-		@ApiResponse(responseCode = "500", description = "Lấy thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
+			@ApiResponse(responseCode = "201", description = "Yêu cầu được thực hiện thành công", content = @Content(schema = @Schema(implementation = OrderDto.class))),
+			@ApiResponse(responseCode = "417", description = "Thông tin đơn hàng nhận về không như dự kiến, hãy liên lạc dev để check kỹ hơn", content = @Content(schema = @Schema(implementation = ResponseDto.class))),
+			@ApiResponse(responseCode = "500", description = "Lấy thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
 	@PostMapping("/place")
 	public ResponseEntity<?> placeOrder(@Valid @RequestBody OrderDto request) {
 		boolean isCreated = orderService.placeOrder(request);
@@ -106,9 +108,9 @@ public class SapoOrderController {
 
 	@Operation(summary = "Chỉnh sửa thông tin đơn hàng")
 	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công", content = @Content(schema = @Schema(implementation = ResponseDto.class))),
-		@ApiResponse(responseCode = "417", description = "Thông tin đơn hàng xử lý không như dự kiến, hãy liên lạc dev để check kỹ hơn", content = @Content(schema = @Schema(implementation = ResponseDto.class))),
-		@ApiResponse(responseCode = "500", description = "Xử lý cập nhật thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
+			@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công", content = @Content(schema = @Schema(implementation = ResponseDto.class))),
+			@ApiResponse(responseCode = "417", description = "Thông tin đơn hàng xử lý không như dự kiến, hãy liên lạc dev để check kỹ hơn", content = @Content(schema = @Schema(implementation = ResponseDto.class))),
+			@ApiResponse(responseCode = "500", description = "Xử lý cập nhật thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
 	@PutMapping("/{orderSku}")
 	public ResponseEntity<ResponseDto> editOrder(
 			@NotBlank(message = "Mã đơn hàng không thể trống") @Size(max = 36) @PathVariable("orderSku") String orderSku,
@@ -130,8 +132,8 @@ public class SapoOrderController {
 
 	@Operation(summary = "Lấy thông tin đơn hàng bằng mã đơn hàng")
 	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công", content = @Content(schema = @Schema(implementation = MemberOrderDto.class))),
-		@ApiResponse(responseCode = "404", description = "Lấy thông tin đơn hàng không thành công, kiểm tra lỗi và liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
+			@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công", content = @Content(schema = @Schema(implementation = MemberOrderDto.class))),
+			@ApiResponse(responseCode = "404", description = "Lấy thông tin đơn hàng không thành công, kiểm tra lỗi và liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
 	@GetMapping("/{orderSku}")
 	public ResponseEntity<OrderDto> getOrderByOrderCode(
 			@NotBlank(message = "Mã đơn hàng không thể trống") @Size(max = 36) @PathVariable("orderSku") String orderSku) {
@@ -141,9 +143,9 @@ public class SapoOrderController {
 
 	@Operation(summary = "Xoá thông tin đơn hàng")
 	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công", content = @Content(schema = @Schema(implementation = ResponseDto.class))),
-		@ApiResponse(responseCode = "417", description = "Thông tin đơn hàng xử lý không như dự kiến, hãy liên lạc dev để check kỹ hơn", content = @Content(schema = @Schema(implementation = ResponseDto.class))),
-		@ApiResponse(responseCode = "500", description = "Xử lý xoá thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
+			@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công", content = @Content(schema = @Schema(implementation = ResponseDto.class))),
+			@ApiResponse(responseCode = "417", description = "Thông tin đơn hàng xử lý không như dự kiến, hãy liên lạc dev để check kỹ hơn", content = @Content(schema = @Schema(implementation = ResponseDto.class))),
+			@ApiResponse(responseCode = "500", description = "Xử lý xoá thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
 	@DeleteMapping("/{orderSku}")
 	public ResponseEntity<ResponseDto> deleteOrder(
 			@NotBlank(message = "Mã đơn hàng không thể trống") @Size(max = 36) @PathVariable("orderSku") String orderSku) {
@@ -164,13 +166,13 @@ public class SapoOrderController {
 
 	@Operation(summary = "Tổng hợp đơn hàng")
 	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công", content = @Content(schema = @Schema(implementation = ResponseDto.class))),
-		@ApiResponse(responseCode = "417", description = "Thông tin đơn hàng xử lý không như dự kiến, hãy liên lạc dev để check kỹ hơn", content = @Content(schema = @Schema(implementation = ResponseDto.class))),
-		@ApiResponse(responseCode = "500", description = "Xử lý xoá thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
+			@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công", content = @Content(schema = @Schema(implementation = ResponseDto.class))),
+			@ApiResponse(responseCode = "417", description = "Thông tin đơn hàng xử lý không như dự kiến, hãy liên lạc dev để check kỹ hơn", content = @Content(schema = @Schema(implementation = ResponseDto.class))),
+			@ApiResponse(responseCode = "500", description = "Xử lý xoá thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
 	@GetMapping("/summary")
 	public ResponseEntity<OrderSummaryDto> summaryOrder() {
 		OrderSummaryDto orderSummary = new OrderSummaryDto();
-		
+
 		orderSummary = orderService.summaryOrder();
 		return ResponseEntity.ok(orderSummary);
 	}
