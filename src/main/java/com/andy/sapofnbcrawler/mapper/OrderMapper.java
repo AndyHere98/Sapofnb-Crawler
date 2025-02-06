@@ -15,11 +15,13 @@ import com.andy.sapofnbcrawler.dto.CustomerInfoDto;
 import com.andy.sapofnbcrawler.dto.MemberOrderDto;
 import com.andy.sapofnbcrawler.dto.OrderDetailDto;
 import com.andy.sapofnbcrawler.dto.OrderDto;
-import com.andy.sapofnbcrawler.dto.OrderSummaryDto.YearlyOrder.MonthlyOrderSummary;
+import com.andy.sapofnbcrawler.dto.OrderSummaryDto;
+import com.andy.sapofnbcrawler.dto.OrderSummaryDto.DailyOrderSummary;
 import com.andy.sapofnbcrawler.dto.SapoOrderDto;
 import com.andy.sapofnbcrawler.entity.Order;
 import com.andy.sapofnbcrawler.entity.OrderDetail;
 import com.andy.sapofnbcrawler.object.CustomerRank;
+import com.andy.sapofnbcrawler.object.DailySummaryOrders;
 import com.andy.sapofnbcrawler.request.MemberOrderRequest;
 
 public class OrderMapper {
@@ -236,5 +238,10 @@ public class OrderMapper {
 		CustomerInfoDto customerInfoDto = new CustomerInfoDto();
 		BeanUtils.copyProperties(customerRank, customerInfoDto);
 		return customerInfoDto;
+	}
+	public static DailyOrderSummary mappingDailyOrderSummary(DailySummaryOrders order) {
+		DailyOrderSummary orderDto = new OrderSummaryDto().new DailyOrderSummary();
+		BeanUtils.copyProperties(order, orderDto);
+		return orderDto;
 	}
 }

@@ -11,6 +11,8 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.ColumnResult;
+import jakarta.persistence.ConstructorResult;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -21,13 +23,12 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedNativeQuery;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.SqlResultSetMapping;
+import jakarta.persistence.SqlResultSetMappings;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import jakarta.persistence.ConstructorResult;
-import jakarta.persistence.ColumnResult;
 
 @Entity
 //@Data
@@ -57,19 +58,23 @@ import jakarta.persistence.ColumnResult;
     	    		+ "order by totalSpending desc",
     resultSetMapping = "CustomerRank"
 )
-@SqlResultSetMapping(
-    name = "CustomerRank",
-    classes = @ConstructorResult(
-        targetClass = CustomerRank.class,
-        columns = {
-            @ColumnResult(name = "customerName", type = String.class),
-            @ColumnResult(name = "customerPhone", type = String.class),
-            @ColumnResult(name = "customerEmail", type = String.class),
-            @ColumnResult(name = "totalDishes", type = Integer.class),
-            @ColumnResult(name = "totalSpending", type = BigDecimal.class),
-            @ColumnResult(name = "totalOrders", type = Integer.class),
-        }
-    )
+@SqlResultSetMappings(
+	{
+		@SqlResultSetMapping(
+		    name = "CustomerRank",
+		    classes = @ConstructorResult(
+		        targetClass = CustomerRank.class,
+		        columns = {
+		            @ColumnResult(name = "customerName", type = String.class),
+		            @ColumnResult(name = "customerPhone", type = String.class),
+		            @ColumnResult(name = "customerEmail", type = String.class),
+		            @ColumnResult(name = "totalDishes", type = Integer.class),
+		            @ColumnResult(name = "totalSpending", type = BigDecimal.class),
+		            @ColumnResult(name = "totalOrders", type = Integer.class),
+		        }
+		    )
+		),
+	}
 )
 public class Order extends BaseEntity {
 	

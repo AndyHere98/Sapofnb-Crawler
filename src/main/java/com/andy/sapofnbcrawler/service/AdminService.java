@@ -27,12 +27,12 @@ public class AdminService {
     public List<OrderDto> summaryTodayOrder() {
         SimpleDateFormat sdf    = new SimpleDateFormat("dd/MM/yyyy");
         Date             today  = new Date();
-        List<Order>      orders = orderRepository.getOrderByOrderDate(sdf.format(today))
-        		.orElseThrow(() -> new ResourceNotFoundException("Đơn hàng hôm nay", "ngày đặt đơn", sdf.format(today)))
-        		;
-        
-        List<OrderDto> orderDtoList = OrderMapper.mappingAdminSummaryOrder(orders, new ArrayList<OrderDto>());
-        return orderDtoList;
+//        List<Order>      orders = orderRepository.getOrderByOrderDate(sdf.format(today))
+//        		.orElseThrow(() -> new ResourceNotFoundException("Đơn hàng hôm nay", "ngày đặt đơn", sdf.format(today)))
+//        		;
+//        
+//        List<OrderDto> orderDtoList = OrderMapper.mappingAdminSummaryOrder(orders, new ArrayList<OrderDto>());
+        return null;
     }
     
     public List<MemberOrderDto> summaryTodayOrderByMember(OrderDto orderDto) {

@@ -5,7 +5,6 @@ import java.util.Optional;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.stereotype.Component;
 
-import com.andy.sapofnbcrawler.entity.CustomerInfo;
 import com.andy.sapofnbcrawler.repository.ICustomerRepository;
 
 import jakarta.servlet.http.HttpServletRequest;

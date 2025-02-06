@@ -4,10 +4,8 @@ import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -31,10 +29,10 @@ import com.andy.sapofnbcrawler.dto.MenuDto;
 import com.andy.sapofnbcrawler.dto.OrderDetailDto;
 import com.andy.sapofnbcrawler.dto.OrderDto;
 import com.andy.sapofnbcrawler.dto.OrderSummaryDto;
-import com.andy.sapofnbcrawler.dto.SapoOrderDto;
 import com.andy.sapofnbcrawler.dto.OrderSummaryDto.DailyOrderSummary;
 import com.andy.sapofnbcrawler.dto.OrderSummaryDto.YearlyOrder;
 import com.andy.sapofnbcrawler.dto.OrderSummaryDto.YearlyOrder.MonthlyOrderSummary;
+import com.andy.sapofnbcrawler.dto.SapoOrderDto;
 import com.andy.sapofnbcrawler.entity.CustomerInfo;
 //import com.andy.sapofnbcrawler.dto.OrderSummaryDto.MonthlyOrderSummary;
 import com.andy.sapofnbcrawler.entity.Order;
@@ -42,6 +40,7 @@ import com.andy.sapofnbcrawler.entity.OrderDetail;
 import com.andy.sapofnbcrawler.exception.ResourceNotFoundException;
 import com.andy.sapofnbcrawler.mapper.OrderMapper;
 import com.andy.sapofnbcrawler.object.CustomerRank;
+import com.andy.sapofnbcrawler.object.DailySummaryOrders;
 import com.andy.sapofnbcrawler.repository.ICustomerRepository;
 import com.andy.sapofnbcrawler.repository.IOrderDetailRepository;
 import com.andy.sapofnbcrawler.repository.IOrderRepository;
@@ -284,6 +283,13 @@ public class OrderService implements IOrderService {
 				.map(order -> OrderMapper.mappingToOrderDto(order, new OrderDto())).toList();
 		return orderDtoList;
 	}
+	
+	public List<OrderDto> getOrderByOrderDate(java.sql.Date orderDate) {
+		List<Order> orderList = orderRepository.getOrderByOrderDate(orderDate).get();
+		List<OrderDto> orderDtoList = orderList.stream()
+				.map(order -> OrderMapper.mappingToOrderDto(order, new OrderDto())).toList();
+		return orderDtoList;
+	}
 
 	@Override
 	public OrderSummaryDto summaryOrder() {
@@ -296,14 +302,23 @@ public class OrderService implements IOrderService {
 		List<DailyOrderSummary> todayOrderList = new ArrayList<>();
 		List<YearlyOrder> yearOrdersList = new ArrayList<>();
 		List<MonthlyOrderSummary> monthOrderList = new ArrayList<>();
-		
 		Map<String, List<Order>> monthOrdersMap = new HashMap<>();
+		
+		java.sql.Date today = new java.sql.Date(System.currentTimeMillis());
+		List<DailySummaryOrders> dailyOrders = orderDetailRepository.getDailySummaryOrder(today);
+		todayOrderList = dailyOrders.stream().map(OrderMapper::mappingDailyOrderSummary).toList();
+		orderSummaryDto.setDailyOrders(todayOrderList);
+		
+		List<OrderDto> todayOrdersList = getOrderByOrderDate(today);
+		orderSummaryDto.setTodayOrders(todayOrdersList);
 		
 		List<String> yearList = orderRepository.getDistinctYearOrder();
 		
 		SimpleDateFormat sdf = new SimpleDateFormat("MM");
 		
-		if (yearList.isEmpty()) throw new ResourceNotFoundException("Order","order date", null);
+		if (yearList.isEmpty()) {
+			return new OrderSummaryDto();
+		};
 		
 		for (String year : yearList) {
 			monthOrdersMap = new HashMap<>();

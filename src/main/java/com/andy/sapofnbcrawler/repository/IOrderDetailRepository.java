@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.andy.sapofnbcrawler.entity.Order;
 import com.andy.sapofnbcrawler.entity.OrderDetail;
+import com.andy.sapofnbcrawler.object.DailySummaryOrders;
 
 @Repository
 public interface IOrderDetailRepository extends JpaRepository<OrderDetail, Long> {
@@ -22,4 +23,7 @@ public interface IOrderDetailRepository extends JpaRepository<OrderDetail, Long>
     @Query(value = "Delete from OrderDetail o where o.order = :order")
     void deleteOrderDetailByOrder(@Param("order") Order order);
 
+    @Query(name = "GetDailySummaryOrder", nativeQuery = true)
+	List<DailySummaryOrders> getDailySummaryOrder(@Param("orderDate") java.sql.Date orderDate);
+    
 }
