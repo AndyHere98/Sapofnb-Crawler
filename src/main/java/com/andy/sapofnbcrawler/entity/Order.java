@@ -87,32 +87,4 @@ public class Order extends BaseEntity {
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "order", orphanRemoval = true)
 	@JsonManagedReference
 	private List<OrderDetail> orderDetails = new ArrayList<>();
-
-	public void addOrderDetail(List<OrderDetail> orderDetailList) {
-		orderDetailList.forEach(orderDetail -> orderDetail.setOrder(this));
-		this.orderDetails.addAll(orderDetailList);
-	}
-
-	public void removeOrderDetail(List<OrderDetail> orderDetailList) {
-		orderDetailList.forEach(orderDetail -> orderDetail.setOrder(null));
-		this.getOrderDetails().clear();
-	}
-	//
-	// @Override
-	// public boolean equals(Object o) {
-	// if (this == o) return true;
-	// if (o == null || getClass() != o.getClass()) return false;
-	// Order order = (Order) o;
-	// return Objects.equals(id, order.getId());
-	// }
-	//
-	// @Override
-	// public int hashCode() {
-	// return Objects.hash(id);
-	// }
-	//
-	// @Override
-	// public String toString() {
-	// return "Set order details: " + List.of(orderDetails);
-	// }
 }

@@ -19,6 +19,7 @@ import com.andy.sapofnbcrawler.dto.OrderSummaryDto;
 import com.andy.sapofnbcrawler.dto.OrderSummaryDto.DailyOrderSummary;
 import com.andy.sapofnbcrawler.dto.SapoOrderDto.CustomerInfo;
 import com.andy.sapofnbcrawler.dto.SapoOrderDto;
+import com.andy.sapofnbcrawler.entity.CustomerInfo;
 import com.andy.sapofnbcrawler.entity.Order;
 import com.andy.sapofnbcrawler.entity.OrderDetail;
 import com.andy.sapofnbcrawler.object.CustomerRank;

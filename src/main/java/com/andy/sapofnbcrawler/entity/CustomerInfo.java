@@ -41,6 +41,8 @@ public class CustomerInfo {
 	private String customerEmail;
 	@Column(nullable = false)
 	private String ipAddress;
+	@Column(name = "host_name")
+	private String pcHostName;
 
 	@CreatedDate
 	private LocalDateTime createdDate;

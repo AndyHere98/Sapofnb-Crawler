@@ -22,9 +22,6 @@ public class AuditAware implements AuditorAware<String> {
 	public Optional<String> getCurrentAuditor() {
 		CustomerInfo customer = customerRepository.findCustomerByIpAddress(request.getRemoteAddr())
 				.orElseThrow(() -> new RuntimeException("Customer is not registered with ip " + request.getRemoteAddr()));
-
 		return Optional.of(customer.getCustomerName());
-
-		// return Optional.of("Andy dev");
 	}
 }
