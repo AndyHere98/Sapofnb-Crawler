@@ -26,7 +26,7 @@ public class AuthenticationService {
 					customerInfoDto.getIpAddress()));
 		}
 		CustomerInfo customer = mapToCustomerInfo(customerInfoDto);
-		customer.setCreatedBy(customer.getIpAddress());
+		customer.setCreatedBy(customer.getPcHostName());
 		customer.setCreatedDate(LocalDateTime.now());
 		customerRepository.save(customer);
 

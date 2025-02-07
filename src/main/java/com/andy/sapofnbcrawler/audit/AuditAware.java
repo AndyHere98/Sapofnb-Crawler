@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.stereotype.Component;
 
+import com.andy.sapofnbcrawler.entity.CustomerInfo;
 import com.andy.sapofnbcrawler.repository.ICustomerRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,11 +20,9 @@ public class AuditAware implements AuditorAware<String>{
 
 	@Override
 	public Optional<String> getCurrentAuditor() {
-//		CustomerInfo customer = customerRepository.findCustomerByIpAddress(request.getRemoteAddr())
-//				.orElseThrow(() -> new RuntimeException("Customer is not registered with ip " + request.getRemoteAddr()));
-//		
-//		return Optional.of(customer.getCustomerName());
-
-		return Optional.of("Andy dev");
+		CustomerInfo customer = customerRepository.findCustomerByIpAddress(request.getRemoteAddr())
+				.orElseThrow(() -> new RuntimeException("Customer is not registered with ip " + request.getRemoteAddr()));
+		
+		return Optional.of(customer.getCustomerName());
 	}
 }

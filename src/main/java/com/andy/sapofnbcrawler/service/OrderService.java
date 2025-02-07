@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -46,6 +47,7 @@ import com.andy.sapofnbcrawler.repository.IOrderDetailRepository;
 import com.andy.sapofnbcrawler.repository.IOrderRepository;
 import com.andy.sapofnbcrawler.validation.OrderValidation;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -60,6 +62,7 @@ public class OrderService implements IOrderService {
 	private final IOrderDetailRepository orderDetailRepository;
 	
 	private final ICustomerRepository customerRepository;
+	private final HttpServletRequest  webRequest;
 
 	@Value("${sapo.customer.name}")
 	private String customerName;
@@ -137,7 +140,9 @@ public class OrderService implements IOrderService {
 		OrderValidation.isOrderFinal(orderCheck, request.getCustomerName());
 
 		Order order = OrderMapper.mappingOrderDtoToOrder(request, new Order());
-		order.setOrderSku(UUID.randomUUID().toString());
+		
+		order.setOrderSku(generateUniqueSku(request.getCustomerName()));
+		
 		order.setOrderDate(new java.sql.Date(new Date().getTime()));
 		List<OrderDetail> orderDetails = request.getOrderDetails().stream()
 				.map(OrderMapper::mappingOrderDetailDtoToOrderDetail).collect(Collectors.toList());
@@ -169,12 +174,10 @@ public class OrderService implements IOrderService {
 						+ ". Vui lòng cập nhật lại thông tin mới trước khi đặt đơn!");
 		});
 		
-		CustomerInfo customerInfo = new CustomerInfo();
-		customerInfo.setCustomerName(request.getCustomerName());
-		customerInfo.setCustomerPhone(request.getCustomerPhone());
-		customerInfo.setCustomerEmail(request.getCustomerEmail());
-		customerInfo.setIpAddress("1231");
-		customerRepository.save(customerInfo);
+		CustomerInfo customerInfo = customerRepository.findCustomerByIpAddress(webRequest.getRemoteAddr())
+				.orElseThrow(() -> 
+					new ResourceNotFoundException("Dữ liệu khách hàng " + request.getCustomerName(), "", null)
+				);
 		
 		order.setCustomerId(customerInfo);
 		order.setTotalDishes(totalDishes);
@@ -196,6 +199,9 @@ public class OrderService implements IOrderService {
 		Order order = orderRepository.findByOrderCode(orderSku)
 				.orElseThrow(() -> new ResourceNotFoundException("Đơn đặt hàng", "mã đơn", orderSku));
 
+		CustomerInfo originCustomer = order.getCustomerId();
+		String paymentMethod = order.getPaymentMethod();
+		
 		orderRepository.deleteById(order.getId());
 		Order updateOrder = OrderMapper.mappingOrderDtoToOrder(request, new Order());
 
@@ -227,6 +233,11 @@ public class OrderService implements IOrderService {
 						+ " đang không khớp với hệ thống: " + dishes.get(dishName)
 						+ ". Vui lòng cập nhật lại thông tin mới trước khi đặt đơn!");
 		});
+		
+		updateOrder.setCustomerId(originCustomer);
+		updateOrder.setOrderSku(orderSku);
+		updateOrder.setPaymentMethod(paymentMethod);
+		
 		orderRepository.save(updateOrder);
 		orderDetails = orderDetailRepository.saveAll(orderDetails);
 		return true;
@@ -409,5 +420,23 @@ public class OrderService implements IOrderService {
 		
 		return rankList;
 	}
+
+	private String generateUniqueSku(String customerName) {
+		
+		String datePart = new SimpleDateFormat("yyMMdd").format(new Date());
+		String randomPart = generateRandomString(4);
+		String code = String.valueOf(customerName.hashCode() < 0 ? customerName.hashCode()*(-1) : customerName.hashCode()).substring(0, 4);
+		
+		return String.format("ORD-%s-%s-%s", datePart, code, randomPart);
+	}
+	private String generateRandomString(int length) {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder sb = new StringBuilder();
+        Random random = new Random();
+        for (int i = 0; i < length; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return sb.toString();
+    } 
 
 }

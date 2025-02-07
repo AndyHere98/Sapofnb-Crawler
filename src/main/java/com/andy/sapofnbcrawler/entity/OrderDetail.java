@@ -2,6 +2,8 @@ package com.andy.sapofnbcrawler.entity;
 
 import java.math.BigDecimal;
 
+import org.hibernate.annotations.Nationalized;
+
 import com.andy.sapofnbcrawler.object.DailySummaryOrders;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
@@ -66,6 +68,7 @@ public class OrderDetail extends BaseEntity {
 	@JsonBackReference
 	private Order order;
 	@Column(name = "dish_name", nullable = false, length = 200)
+	@Nationalized
 	private String name;
 	@Column(nullable = false, length = 2)
 	private int quantity;

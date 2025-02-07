@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.annotations.Nationalized;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 
@@ -36,6 +37,7 @@ public class CustomerInfo {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	@Column(nullable = false, length = 100)
+	@Nationalized
 	private String customerName;
 	@Column(nullable = false, length = 20)
     private String customerPhone;
@@ -43,6 +45,8 @@ public class CustomerInfo {
     private String customerEmail;
 	@Column(nullable = false)
 	private String ipAddress;
+	@Column(name = "host_name")
+	private String pcHostName;
 
     @CreatedDate
     private LocalDateTime createdDate;

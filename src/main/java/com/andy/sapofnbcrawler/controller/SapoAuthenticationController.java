@@ -85,6 +85,7 @@ public class SapoAuthenticationController {
         String remoteIp = request.getRemoteAddr();
         
         customerInfoDto.setIpAddress(remoteIp);
+        customerInfoDto.setPcHostName(request.getRemoteHost());
         boolean isCreated = authenticationService.registerUser(customerInfoDto);
 
 		if (isCreated) {

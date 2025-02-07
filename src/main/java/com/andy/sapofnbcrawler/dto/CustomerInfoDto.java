@@ -22,6 +22,10 @@ import lombok.NoArgsConstructor;
 public class CustomerInfoDto {
 	@Schema(description = "Địa chỉ IP thiết bị")
 	private String ipAddress;
+	
+	@Schema(description = "Tên thiết bị")
+	private String pcHostName;
+
 
 	@Schema(description = "Tên khách hàng")
 	@NotEmpty(message = "Tên khách hàng không được để trống")

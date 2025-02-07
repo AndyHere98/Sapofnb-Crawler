@@ -83,7 +83,7 @@ public class Order extends BaseEntity {
 	private Long id;
 	@Column(nullable = false, length = 36, name = "order_sku", unique = true, updatable = false)
 	private String orderSku;
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "customer_id", nullable = false)
 	@JsonBackReference
 	private CustomerInfo customerId;
@@ -111,22 +111,4 @@ public class Order extends BaseEntity {
     	orderDetailList.forEach(orderDetail -> orderDetail.setOrder(null));
     	this.getOrderDetails().clear();
     }
-//    
-//    @Override
-//    public boolean equals(Object o) {
-//        if (this == o) return true;
-//        if (o == null || getClass() != o.getClass()) return false;
-//        Order order = (Order) o;
-//        return Objects.equals(id, order.getId());
-//    }
-//
-//    @Override
-//    public int hashCode() {
-//        return Objects.hash(id);
-//    }
-//    
-//    @Override
-//    public String toString() {
-//    	return "Set order details: " + List.of(orderDetails);
-//    }
 }
