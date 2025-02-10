@@ -5,8 +5,9 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.annotations.Nationalized;
+
 import com.andy.sapofnbcrawler.object.CustomerRank;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
@@ -74,6 +75,7 @@ public class Order extends BaseEntity {
 	@JoinColumn(name = "customer_id", nullable = false)
 	private CustomerInfo customerId;
 	@Column(length = 200)
+	@Nationalized
 	private String note;
 	@Column(nullable = false)
 	private BigDecimal totalPrice;
@@ -81,10 +83,13 @@ public class Order extends BaseEntity {
 	private int totalDishes;
 	@Column(nullable = false, length = 10)
 	private String paymentMethod;
+	@Column(nullable = false, length = 10)
+	private String paymentType;
 	@Column(nullable = false, length = 1, columnDefinition = "NUMBER(1,0) DEFAULT 0")
 	private int isPaid;
 	private Date orderDate;
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "order", orphanRemoval = true)
 	@JsonManagedReference
 	private List<OrderDetail> orderDetails = new ArrayList<>();
+
 }

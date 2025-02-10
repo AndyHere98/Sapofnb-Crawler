@@ -12,5 +12,6 @@ import lombok.NoArgsConstructor;
 public class DailySummaryOrders {
 	private String dishName;
 	private int quantity;
+	private BigDecimal unitPrice;
 	private BigDecimal sumPrice;
 }

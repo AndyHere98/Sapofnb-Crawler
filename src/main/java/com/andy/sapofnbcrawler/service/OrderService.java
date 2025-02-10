@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -150,10 +149,11 @@ public class OrderService implements IOrderService {
 		OrderValidation.isNoDishes(orderDetails); // Check no dish mapped
 
 		MenuDto menu = menuService.getMenu();
-		List<String> todayDishes = menu.getDishes().stream().map(OrderDetailDto::getName).toList();
 
 		if (menu.getDishes().isEmpty())
 			throw new ResourceNotFoundException("Danh sách món ăn", null, null);
+
+		List<String> todayDishes = menu.getDishes().stream().map(OrderDetailDto::getName).toList();
 		Map<String, BigDecimal> dishes = new HashMap<>();
 		for (OrderDetailDto dish : menu.getDishes()) {
 			dishes.put(dish.getName(), dish.getPrice());
@@ -162,7 +162,6 @@ public class OrderService implements IOrderService {
 		int totalDishes = request.getOrderDetails().stream().mapToInt(orderDetail -> orderDetail.getQuantity()).sum();
 
 		orderDetails.forEach(orderDetail -> {
-			// orderDetail.setOrderId(order.getOrderSku());
 			orderDetail.setOrder(order);
 			String dishName = orderDetail.getName();
 			if (dishes.get(dishName) == null)
@@ -175,12 +174,8 @@ public class OrderService implements IOrderService {
 						+ ". Vui lòng cập nhật lại thông tin mới trước khi đặt đơn!");
 		});
 
-		CustomerInfo customerInfo = new CustomerInfo();
-		customerInfo.setCustomerName(request.getCustomerName());
-		customerInfo.setCustomerPhone(request.getCustomerPhone());
-		customerInfo.setCustomerEmail(request.getCustomerEmail());
-		customerInfo.setIpAddress("1231");
-		customerRepository.save(customerInfo);
+		CustomerInfo customerInfo = customerRepository.findCustomerByIpAddress(webRequest.getRemoteAddr())
+				.orElseThrow(() -> new ResourceNotFoundException("Dữ liệu khách hàng " + request.getCustomerName(), "", null));
 
 		order.setCustomerId(customerInfo);
 		order.setTotalDishes(totalDishes);
@@ -200,6 +195,8 @@ public class OrderService implements IOrderService {
 
 		Order order = orderRepository.findByOrderCode(orderSku)
 				.orElseThrow(() -> new ResourceNotFoundException("Đơn đặt hàng", "mã đơn", orderSku));
+
+		CustomerInfo originCustomer = order.getCustomerId();
 
 		orderRepository.deleteById(order.getId());
 		Order updateOrder = OrderMapper.mappingOrderDtoToOrder(request, new Order());
@@ -232,6 +229,17 @@ public class OrderService implements IOrderService {
 						+ " đang không khớp với hệ thống: " + dishes.get(dishName)
 						+ ". Vui lòng cập nhật lại thông tin mới trước khi đặt đơn!");
 		});
+
+		// CustomerInfo customerInfo =
+		// customerRepository.findById(originCustomer.getId())
+		// .orElseThrow(() ->
+		// new ResourceNotFoundException("Dữ liệu khách hàng " +
+		// request.getCustomerName(), "", null)
+		// );
+		updateOrder.setCustomerId(originCustomer);
+		updateOrder.setOrderSku(orderSku);
+		updateOrder.setPaymentMethod(request.getPaymentMethod());
+
 		orderRepository.save(updateOrder);
 		orderDetails = orderDetailRepository.saveAll(orderDetails);
 		return true;
@@ -242,30 +250,19 @@ public class OrderService implements IOrderService {
 		Order order = orderRepository.findByOrderCode(orderSku)
 				.orElseThrow(() -> new ResourceNotFoundException("Đơn đặt hàng", "mã đơn", orderSku));
 
-		// List<OrderDetail> orderDetails = orderDetailRepository.findAllByOrder(order);
-		// order.setOrderDetails(orderDetails);
 		return OrderMapper.mappingToOrderDto(order, new OrderDto());
 	}
 
-	// @Transactional(propagation = Propagation.REQUIRED, isolation =
-	// Isolation.READ_COMMITTED)
 	@Override
 	public boolean deleteOrder(String orderSku) {
-
 		if (SapoConstants.APP_MODE_PRODUCTION.equalsIgnoreCase(mode)) {
 			return SapoUtils.checkingTimeUp();
 		}
 
 		Order order = orderRepository.findByOrderCode(orderSku)
 				.orElseThrow(() -> new ResourceNotFoundException("Đơn đặt hàng", "mã đơn", orderSku));
-		// orderDetailRepository.deleteOrderDetailByOrder(order);
 		orderRepository.deleteById(order.getId());
 		return true;
-
-		// OrderResponse orderResponse = new OrderResponse();
-		// orderResponse.setOrderSku(order.getOrderCode());
-		// orderResponse.setTotalPrice(order.getTotalPrice());
-		// return orderResponse;
 	}
 
 	@Override

@@ -20,6 +20,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedNativeQuery;
 import jakarta.persistence.SqlResultSetMapping;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,16 +35,18 @@ import lombok.Setter;
 // @Data
 @NamedNativeQuery(name = "GetDailySummaryOrder", query = "select "
 		+ "o.dish_name as dishName "
+		+ ", o.unit_price as unitPrice "
 		+ ", sum(o.quantity) as quantity "
-		+ ", sum(o.price) as sumPrice "
+		+ ", sum(o.total_amount) as sumPrice "
 		+ "from order_detail o "
-		+ "join member_order m on (m.order_sku = o.order_id)"
+		+ "join member_order m on (m.order_sku = o.order_id) "
 		+ "where m.order_date = :orderDate "
-		+ "group by (o.dish_name)"
+		+ "group by (o.dish_name, o.unit_price) "
 		+ "order by dishName asc", resultSetMapping = "DailySummaryOrderMapping")
 @SqlResultSetMapping(name = "DailySummaryOrderMapping", classes = @ConstructorResult(targetClass = DailySummaryOrders.class, columns = {
 		@ColumnResult(name = "dishName", type = String.class),
 		@ColumnResult(name = "quantity", type = Integer.class),
+		@ColumnResult(name = "unitPrice", type = BigDecimal.class),
 		@ColumnResult(name = "sumPrice", type = BigDecimal.class),
 }))
 public class OrderDetail extends BaseEntity {
@@ -60,7 +63,25 @@ public class OrderDetail extends BaseEntity {
 	@Nationalized
 	private String name;
 	@Column(nullable = false, length = 2)
-	private int quantity;
-	@Column(nullable = false, length = 5)
+	@Setter(AccessLevel.NONE)
+	private int quantity = 0;
+	@Column(name = "unit_price", nullable = false, length = 5)
+	@Setter(AccessLevel.NONE)
 	private BigDecimal price;
+	@Column(name = "total_amount", nullable = false, length = 7)
+	private BigDecimal totalAmout;
+
+	public void setQuantity(int quantity) {
+		this.quantity = quantity;
+		if (this.price != null) {
+			setTotalAmout(price.multiply(new BigDecimal(quantity)));
+		}
+	}
+
+	public void setPrice(BigDecimal price) {
+		this.price = price;
+		if (this.quantity >= 0) {
+			setTotalAmout(price.multiply(new BigDecimal(quantity)));
+		}
+	}
 }

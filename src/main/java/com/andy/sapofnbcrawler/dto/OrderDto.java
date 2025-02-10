@@ -13,29 +13,22 @@ import lombok.Data;
 
 @Schema(name = "Thông tin đơn hàng", description = "Thông tin đơn hàng")
 @JsonInclude(JsonInclude.Include.NON_NULL)
-//@JsonPropertyOrder({ "customerInfo", "orderSku", "status", "fullAddress", "note", "orderDate", "orderTime",
-//		"updatedOrderTime", "totalPrice", "paymentMethodType", "paymentMethodName", "dishes" })
 @Data
 public class OrderDto {
 
-	@Schema(
-		description = "Tên khách hàng"
-	)
+	@Schema(description = "Tên khách hàng")
 	@NotEmpty(message = "Tên khách hàng không được để trống")
 	@Size(max = 200)
 	private String customerName;
-	
-	@Schema(
-		description = "Số điện thoại khách hàng"
-	)
-//	@NotEmpty(message = "Số điện thoại khách hàng không được để trống")
-//    @Pattern(regexp = "^[\\+]?[(]?[0-9]{3}[)]?[-\\s\\.]?[0-9]{3}[-\\s\\.]?[0-9]{4,6}$")
-    private String customerPhone;
-	
-	@Schema(
-		description = "Thông tin email khách hàng"
-	)
-    private String customerEmail;
+
+	@Schema(description = "Số điện thoại khách hàng")
+	// @NotEmpty(message = "Số điện thoại khách hàng không được để trống")
+	// @Pattern(regexp =
+	// "^[\\+]?[(]?[0-9]{3}[)]?[-\\s\\.]?[0-9]{3}[-\\s\\.]?[0-9]{4,6}$")
+	private String customerPhone;
+
+	@Schema(description = "Thông tin email khách hàng")
+	private String customerEmail;
 
 	@Schema(description = "Mã đơn hàng")
 	@JsonProperty("id")
@@ -74,8 +67,8 @@ public class OrderDto {
 	@Schema(description = "Hình thức thanh toán dạng code")
 	private String paymentMethod;
 
-	@Schema(description = "Hình thức thanh toán dạng chữ")
-	private String paymentMethodName;
+	@Schema(description = "Kiểu thanh toán (trả trước / trả sau)")
+	private String paymentType;
 
 	@Schema(description = "Đơn hàng từ ngày")
 	private String fromDate;

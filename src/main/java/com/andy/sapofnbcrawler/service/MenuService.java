@@ -1,7 +1,12 @@
 package com.andy.sapofnbcrawler.service;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -36,17 +41,54 @@ public class MenuService {
 		ResponseEntity<String> response = restTemplate.exchange(sUrl.toString(), HttpMethod.GET, httpEntity,
 				String.class);
 
-//		System.out.println(response.getBody());
+		// System.out.println(response.getBody());
 		String json = SapoUtils.getJsonData(response.getBody());
 
-		if (json.isEmpty())
-			throw new ResourceNotFoundException("Dữ liệu phản hồi", "khi lấy thông tin menu", null);
-		
+		DateFormat dateFormat = new SimpleDateFormat("EEEE", Locale.ENGLISH);
+		String weekDay = "";
+
+		switch (dateFormat.format(new Date())) {
+			case "MONDAY":
+				weekDay = "Thứ hai";
+				break;
+			case "TUESDAY":
+				weekDay = "Thứ ba";
+				break;
+			case "WEDNESDAY":
+				weekDay = "Thứ tư";
+				break;
+			case "THURSDAY":
+				weekDay = "Thứ năm";
+				break;
+			case "FRIDAY":
+				weekDay = "Thứ sáu";
+				break;
+			case "SATURDAY":
+				weekDay = "Thứ bảy";
+				break;
+			case "SUNDAY":
+				weekDay = "Chủ nhật";
+				break;
+			default:
+				break;
+		}
+
 		MenuDto menuResponse = new MenuDto();
+		if (json.isEmpty()) {
+			menuResponse.setName(weekDay);
+			return menuResponse;
+		}
+		// throw new ResourceNotFoundException("Dữ liệu phản hồi", "khi lấy thông tin
+		// menu", null);
 
 		SapoMenuDto sapoMenu = (SapoMenuDto) SapoUtils.convertJsonToObject(json, SapoMenuDto.class);
-		menuResponse = mappingMenuDto(sapoMenu);
 
+		if (sapoMenu.getName().toLowerCase().contains(weekDay.toLowerCase())) {
+			menuResponse = mappingMenuDto(sapoMenu);
+		} else {
+			menuResponse.setName(weekDay);
+			return menuResponse;
+		}
 		return menuResponse;
 	}
 

@@ -12,22 +12,23 @@ import lombok.Data;
 public class OrderSummaryDto {
 
 	private List<OrderDto> todayOrders = new ArrayList<>();
-	private List<DailyOrderSummary> dailyOrders= new ArrayList<>();
-	private List<YearlyOrder> yearlyOrders= new ArrayList<>();
-	private List<RecentOrderSummary> recentOrders= new ArrayList<>();
-	
+	private List<DailyOrderSummary> dailyOrders = new ArrayList<>();
+	private List<YearlyOrder> yearlyOrders = new ArrayList<>();
+	private List<RecentOrderSummary> recentOrders = new ArrayList<>();
+
 	@Data
 	public class DailyOrderSummary {
 		private String dishName;
 		private int quantity;
+		private BigDecimal unitPrice;
 		private BigDecimal sumPrice;
 	}
-	
+
 	@Data
 	public class YearlyOrder extends OrderSum {
 		private String year;
 		private List<MonthlyOrderSummary> monthlyOrderSummary;
-		
+
 		@Data
 		public class MonthlyOrderSummary extends OrderSum {
 			private String month;
@@ -35,14 +36,14 @@ public class OrderSummaryDto {
 			private List<CustomerInfoDto> topCustomer;
 		}
 	}
-	
+
 	@Data
 	public abstract class OrderSum {
 		private BigDecimal totalSpending;
 		private int totalDish;
 		private int totalOrders;
 	}
-	
+
 	@Data
 	public class RecentOrderSummary {
 		private String orderDate;
