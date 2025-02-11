@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.andy.sapofnbcrawler.dto.AdminCustomerSummaryDto;
+import com.andy.sapofnbcrawler.dto.AdminOrderSummaryDto;
 import com.andy.sapofnbcrawler.dto.ErrorResponseDto;
 import com.andy.sapofnbcrawler.dto.MemberOrderDto;
 import com.andy.sapofnbcrawler.dto.OrderDto;
@@ -33,50 +35,37 @@ public class SapoAdminController {
 
 	private final AdminService adminService;
 
-	// @Operation(
-	// summary = "Tổng hợp danh sách đặt hàng hôm nay"
-	// )
-	// @ApiResponses({
-	// @ApiResponse(
-	// responseCode = "200", description = "Yêu cầu được thực hiện thành công",
-	// content = @Content(
-	// schema = @Schema(implementation = OrderDto.class)
-	// )
-	// ),
-	// @ApiResponse(
-	// responseCode = "500", description = "Lấy thông tin đơn hàng không thành công,
-	// liên hệ với dev",
-	// content = @Content(
-	// schema = @Schema(implementation = ErrorResponseDto.class)
-	// )
-	// )
-	// })
-	// @GetMapping("/today-order")
-	// public ResponseEntity<OrderDto> summaryTodayOrder() {
-	// OrderDto order = adminService.summaryTodayOrder();
-	// return ResponseEntity.ok(order);
-	// }
 
 	@Operation(summary = "Tổng hợp danh sách đặt hàng theo từng member")
 	@ApiResponses({
 			@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công"),
 			@ApiResponse(responseCode = "500", description = "Lấy thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
 	})
-	@GetMapping("/summary-order")
-	public ResponseEntity<List<OrderDto>> summaryOrder(
-			@NotNull(message = "Cần điều kiện để thực hiện tổng đơn hàng") @RequestBody OrderDto orderDto) {
-		List<OrderDto> orderList = adminService.summaryOrders(orderDto);
-		return ResponseEntity.ok(orderList);
+	@GetMapping("/orders/summary")
+	public ResponseEntity<AdminOrderSummaryDto> summaryOrder() {
+		AdminOrderSummaryDto order = adminService.summaryOrders();
+		return ResponseEntity.ok(order);
 	}
 
-	@Operation(summary = "Tổng hợp danh sách đơn hàng theo thời gian")
+	@Operation(summary = "Tổng hợp danh sách đặt hàng theo từng member")
 	@ApiResponses({
 			@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công"),
 			@ApiResponse(responseCode = "500", description = "Lấy thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
 	})
-	@GetMapping("/summary")
-	public ResponseEntity<List<MemberOrderDto>> summaryTodayOrderByMember(@RequestBody OrderDto orderDto) {
-		List<MemberOrderDto> orderList = adminService.summaryTodayOrderByMember(orderDto);
-		return ResponseEntity.ok(orderList);
+	@GetMapping("/customers/summary")
+	public ResponseEntity<AdminCustomerSummaryDto> summaryCustomers() {
+		AdminCustomerSummaryDto customerSummaryDto = adminService.summaryCustomers();
+		return ResponseEntity.ok(customerSummaryDto);
 	}
+
+//	@Operation(summary = "Tổng hợp danh sách đơn hàng theo thời gian")
+//	@ApiResponses({
+//			@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công"),
+//			@ApiResponse(responseCode = "500", description = "Lấy thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
+//	})
+//	@GetMapping("/summary")
+//	public ResponseEntity<List<MemberOrderDto>> summaryTodayOrderByMember(@RequestBody OrderDto orderDto) {
+//		List<MemberOrderDto> orderList = adminService.summaryTodayOrderByMember(orderDto);
+//		return ResponseEntity.ok(orderList);
+//	}
 }

@@ -40,6 +40,9 @@ public class CustomerInfoDto {
 	@Schema(description = "Thông tin email khách hàng")
 	@NotEmpty(message = "Email khách hàng không được để trống")
 	private String customerEmail;
+	
+	@Schema(description = "Công nợ hiện tại dựa trên những đơn chưa thanh toán")
+	private BigDecimal balance;
 
 	@Schema(description = "Tổng đơn đã đặt")
 	private int totalOrders;

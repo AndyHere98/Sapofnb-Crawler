@@ -1,5 +1,6 @@
 package com.andy.sapofnbcrawler.repository;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -12,8 +13,10 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.andy.sapofnbcrawler.dto.OrderDto;
+import com.andy.sapofnbcrawler.entity.CustomerInfo;
 import com.andy.sapofnbcrawler.entity.Order;
 import com.andy.sapofnbcrawler.object.CustomerRank;
+import com.andy.sapofnbcrawler.object.DailySummaryOrders;
 
 @Repository
 public interface IOrderRepository extends JpaRepository<Order, Long> {
@@ -109,4 +112,15 @@ public interface IOrderRepository extends JpaRepository<Order, Long> {
 //    		, nativeQuery = true)
     @Query(name = "getRankingCustomer", nativeQuery = true)
 	List<CustomerRank> rankCustomerInMonthAndYear(@Param("start") Date start,@Param("end") Date end);
+
+    @Query(name = "summaryDailyOrders", nativeQuery = true)
+	List<DailySummaryOrders> summaryDailyOrders();
+
+    @Query(name = "getRankingCustomerAllTime", nativeQuery = true)
+	List<CustomerRank> rankCustomerAllTime();
+
+    @Query(value = "select sum(o.totalPrice) as totalDebt from Order o"
+    		+ " where o.customerId = :customer"
+    )
+	BigDecimal getTotalDebtOfCustomer(@Param("customer") CustomerInfo customer);
 }

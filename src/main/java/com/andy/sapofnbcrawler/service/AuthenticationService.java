@@ -58,6 +58,7 @@ public class AuthenticationService {
 		customerInfo.setCustomerName(customerInfoDto.getCustomerName());
 		customerInfo.setCustomerPhone(customerInfoDto.getCustomerPhone());
 		customerInfo.setCustomerEmail(customerInfoDto.getCustomerEmail());
+		customerInfo.setPcHostName(customerInfoDto.getPcHostName());
 
 		return customerInfo;
 	}

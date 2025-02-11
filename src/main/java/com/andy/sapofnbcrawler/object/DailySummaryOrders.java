@@ -14,4 +14,7 @@ public class DailySummaryOrders {
 	private int quantity;
 	private BigDecimal unitPrice;
 	private BigDecimal sumPrice;
+	
+	private String orderDate;
+	private int totalDishes;
 }
