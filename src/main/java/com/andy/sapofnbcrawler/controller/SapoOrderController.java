@@ -146,7 +146,7 @@ public class SapoOrderController {
 			@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công", content = @Content(schema = @Schema(implementation = ResponseDto.class))),
 			@ApiResponse(responseCode = "417", description = "Thông tin đơn hàng xử lý không như dự kiến, hãy liên lạc dev để check kỹ hơn", content = @Content(schema = @Schema(implementation = ResponseDto.class))),
 			@ApiResponse(responseCode = "500", description = "Xử lý xoá thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
-	@DeleteMapping("/{orderSku}")
+	@PutMapping("/delete/{orderSku}")
 	public ResponseEntity<ResponseDto> deleteOrder(
 			@NotBlank(message = "Mã đơn hàng không thể trống") @Size(max = 36) @PathVariable("orderSku") String orderSku) {
 		ResponseDto commonResponse = new ResponseDto();

@@ -40,9 +40,6 @@ public class OrderDto {
 	@Schema(description = "Địa chỉ giao hàng")
 	private String address;
 
-	@Schema(description = "Trạng thái đơn hàng")
-	private String status;
-
 	@Schema(description = "Thời gian tạo đơn hàng")
 	@JsonProperty("createdAt")
 	private long createdOn;
@@ -75,4 +72,11 @@ public class OrderDto {
 
 	@Schema(description = "Đơn hàng đến ngày")
 	private String toDate;
+
+	@Schema(description = "Trạng thái đơn hàng")
+	@JsonProperty("status")
+	private String orderStatus;
+
+	@Schema(description = "Ngày đặt đơn")
+	private String cancelReason;
 }

@@ -18,6 +18,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -37,6 +38,7 @@ import com.andy.sapofnbcrawler.entity.CustomerInfo;
 //import com.andy.sapofnbcrawler.dto.OrderSummaryDto.MonthlyOrderSummary;
 import com.andy.sapofnbcrawler.entity.Order;
 import com.andy.sapofnbcrawler.entity.OrderDetail;
+import com.andy.sapofnbcrawler.exception.OrderCompletedException;
 import com.andy.sapofnbcrawler.exception.ResourceNotFoundException;
 import com.andy.sapofnbcrawler.mapper.OrderMapper;
 import com.andy.sapofnbcrawler.object.CustomerRank;
@@ -178,6 +180,7 @@ public class OrderService implements IOrderService {
 		CustomerInfo customerInfo = customerRepository.findCustomerByIpAddress(webRequest.getRemoteAddr())
 				.orElseThrow(() -> new ResourceNotFoundException("Dữ liệu khách hàng " + request.getCustomerName(), "", null));
 
+		order.setOrderStatus(SapoConstants.ORDER_STATUS_PENDING);
 		order.setCustomerId(customerInfo);
 		order.setTotalDishes(totalDishes);
 
@@ -196,6 +199,10 @@ public class OrderService implements IOrderService {
 
 		Order order = orderRepository.findByOrderCode(orderSku)
 				.orElseThrow(() -> new ResourceNotFoundException("Đơn đặt hàng", "mã đơn", orderSku));
+
+		if (!order.getOrderStatus().equals(SapoConstants.ORDER_STATUS_PENDING)) {
+			throw new OrderCompletedException("Đơn hàng " + orderSku + " đã hoàn tất. Không thể tiếp tục chỉnh sửa!");
+		}
 
 		CustomerInfo originCustomer = order.getCustomerId();
 
@@ -255,6 +262,7 @@ public class OrderService implements IOrderService {
 	}
 
 	@Override
+	@Transactional
 	public boolean deleteOrder(String orderSku) {
 		if (SapoConstants.APP_MODE_PRODUCTION.equalsIgnoreCase(mode)) {
 			return SapoUtils.checkingTimeUp();
@@ -262,7 +270,14 @@ public class OrderService implements IOrderService {
 
 		Order order = orderRepository.findByOrderCode(orderSku)
 				.orElseThrow(() -> new ResourceNotFoundException("Đơn đặt hàng", "mã đơn", orderSku));
-		orderRepository.deleteById(order.getId());
+		// orderRepository.deleteById(order.getId());
+
+		if (!order.getOrderStatus().equals(SapoConstants.ORDER_STATUS_PENDING)) {
+			throw new OrderCompletedException("Đơn hàng " + orderSku + " đã hoàn tất. Thủ tục xoá thất bại!");
+		}
+
+		String status = SapoConstants.ORDER_STATUS_CANCELLED;
+		orderRepository.updateOrderStatus(order.getId(), status);
 		return true;
 	}
 

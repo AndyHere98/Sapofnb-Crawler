@@ -6,6 +6,7 @@ import org.hibernate.annotations.Nationalized;
 
 import com.andy.sapofnbcrawler.object.DailySummaryOrders;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.ColumnResult;
@@ -57,7 +58,6 @@ public class OrderDetail extends BaseEntity {
 	private Long id;
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "order_id", referencedColumnName = "order_sku", nullable = false)
-	@JsonBackReference
 	private Order order;
 	@Column(name = "dish_name", nullable = false, length = 200)
 	@Nationalized
@@ -83,5 +83,21 @@ public class OrderDetail extends BaseEntity {
 		if (this.quantity >= 0) {
 			setTotalAmout(price.multiply(new BigDecimal(quantity)));
 		}
+	}
+
+	@Override
+	public String toString() {
+		return String.format("Món %s giá %s gồm %s phần", name, price,
+				quantity);
+	}
+
+	@Override
+	public boolean equals(Object order) {
+		return (((OrderDetail) order).getId()) == (id);
+	}
+
+	@Override
+	public int hashCode() {
+		return id.intValue();
 	}
 }
