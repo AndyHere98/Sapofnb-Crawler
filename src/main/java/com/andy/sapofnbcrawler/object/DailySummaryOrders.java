@@ -16,5 +16,6 @@ public class DailySummaryOrders {
 	private BigDecimal sumPrice;
 	
 	private String orderDate;
+	private int orderCount;
 	private int totalDishes;
 }

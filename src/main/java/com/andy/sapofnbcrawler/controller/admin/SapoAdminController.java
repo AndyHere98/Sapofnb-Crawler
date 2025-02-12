@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.andy.sapofnbcrawler.dto.AdminBillingSummaryDto;
 import com.andy.sapofnbcrawler.dto.AdminCustomerSummaryDto;
 import com.andy.sapofnbcrawler.dto.AdminOrderSummaryDto;
 import com.andy.sapofnbcrawler.dto.ErrorResponseDto;
@@ -58,14 +59,14 @@ public class SapoAdminController {
 		return ResponseEntity.ok(customerSummaryDto);
 	}
 
-//	@Operation(summary = "Tổng hợp danh sách đơn hàng theo thời gian")
-//	@ApiResponses({
-//			@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công"),
-//			@ApiResponse(responseCode = "500", description = "Lấy thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
-//	})
-//	@GetMapping("/summary")
-//	public ResponseEntity<List<MemberOrderDto>> summaryTodayOrderByMember(@RequestBody OrderDto orderDto) {
-//		List<MemberOrderDto> orderList = adminService.summaryTodayOrderByMember(orderDto);
-//		return ResponseEntity.ok(orderList);
-//	}
+	@Operation(summary = "Tổng hợp thông tin hoá đơn cho Admin")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công"),
+			@ApiResponse(responseCode = "500", description = "Lấy thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
+	})
+	@GetMapping("/billing/summary")
+	public ResponseEntity<AdminBillingSummaryDto> summaryBilling() {
+		AdminBillingSummaryDto orderList = adminService.summaryBilling();
+		return ResponseEntity.ok(orderList);
+	}
 }

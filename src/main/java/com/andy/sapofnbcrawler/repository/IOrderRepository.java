@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.andy.sapofnbcrawler.dto.OrderDto;
 import com.andy.sapofnbcrawler.entity.CustomerInfo;
 import com.andy.sapofnbcrawler.entity.Order;
+import com.andy.sapofnbcrawler.object.BillingSummary;
 import com.andy.sapofnbcrawler.object.CustomerRank;
 import com.andy.sapofnbcrawler.object.DailySummaryOrders;
 
@@ -121,6 +122,15 @@ public interface IOrderRepository extends JpaRepository<Order, Long> {
 
     @Query(value = "select sum(o.totalPrice) as totalDebt from Order o"
     		+ " where o.customerId = :customer"
+    		+ " and o.isPaid = 0"
     )
 	BigDecimal getTotalDebtOfCustomer(@Param("customer") CustomerInfo customer);
+
+    @Query(value = "select o from Order o"
+    		+ " where o.isPaid = 0"
+    )
+	List<Order> getUnpaidOrder();
+
+    @Query(name = "summaryBilling", nativeQuery = true)
+	BillingSummary summaryBilling(@Param("date") Date date);
 }

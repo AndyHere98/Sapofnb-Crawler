@@ -160,6 +160,7 @@ public class OrderService implements IOrderService {
 		}
 
 		int totalDishes = request.getOrderDetails().stream().mapToInt(orderDetail -> orderDetail.getQuantity()).sum();
+		System.out.println("Total dishes: " + totalDishes + " in order: " + order.getOrderSku());
 
 		orderDetails.forEach(orderDetail -> {
 			orderDetail.setOrder(order);

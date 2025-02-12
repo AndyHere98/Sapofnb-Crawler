@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.hibernate.annotations.Nationalized;
 
+import com.andy.sapofnbcrawler.object.BillingSummary;
 import com.andy.sapofnbcrawler.object.CustomerRank;
 import com.andy.sapofnbcrawler.object.DailySummaryOrders;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -61,7 +62,7 @@ import lombok.Setter;
 	, query = "select "
 			+ "to_char(MO.ORDER_DATE, 'dd/MM/yyyy') AS orderDate "
 			+ ", SUM(mo.total_price) AS sumPrice"
-			+ ", SUM(mo.total_dishes) AS totalDishes "
+			+ ", count(mo.id) AS orderCount "
 			+ "from MEMBER_ORDER mo "
 			+ "GROUP BY (to_char(MO.ORDER_DATE, 'dd/MM/yyyy'))"
 			, resultSetMapping = "SummaryDailyOrders"),
@@ -79,6 +80,14 @@ import lombok.Setter;
 			+ ", c.customer_phone "
 			+ ", c.customer_email) "
 			+ "order by totalSpending desc", resultSetMapping = "CustomerRank"),
+	@NamedNativeQuery(name = "summaryBilling"
+	, query = "select "
+			+ "(select SUM(total_price) from MEMBER_ORDER) AS totalRevenue "
+			+ ", (select SUM(total_price) from MEMBER_ORDER where to_char(order_date, 'dd/MM/yyyy') = to_char(:date, 'dd/MM/yyyy')) AS dailyRevenue"
+			+ ", (select SUM(total_price) from MEMBER_ORDER where to_char(order_date, 'MM/yyyy') = to_char(:date, 'MM/yyyy')) AS monthlyRevenue "
+			+ ", (select SUM(total_price) from MEMBER_ORDER where to_char(order_date, 'yyyy') = to_char(:date, 'yyyy')) AS yearlyRevenue "
+			+ "from dual"
+			, resultSetMapping = "SummaryBilling"),
 })
 
 @SqlResultSetMappings({
@@ -91,9 +100,15 @@ import lombok.Setter;
 				@ColumnResult(name = "totalOrders", type = Integer.class),
 		})),
 		@SqlResultSetMapping(name = "SummaryDailyOrders", classes = @ConstructorResult(targetClass = DailySummaryOrders.class, columns = {
-				@ColumnResult(name = "totalDishes", type = Integer.class),
+				@ColumnResult(name = "orderCount", type = Integer.class),
 				@ColumnResult(name = "sumPrice", type = BigDecimal.class),
 				@ColumnResult(name = "orderDate", type = String.class),
+		})),
+		@SqlResultSetMapping(name = "SummaryBilling", classes = @ConstructorResult(targetClass = BillingSummary.class, columns = {
+				@ColumnResult(name = "totalRevenue", type = BigDecimal.class),
+				@ColumnResult(name = "dailyRevenue", type = BigDecimal.class),
+				@ColumnResult(name = "monthlyRevenue", type = BigDecimal.class),
+				@ColumnResult(name = "yearlyRevenue", type = BigDecimal.class),
 		})),
 })
 public class Order extends BaseEntity {

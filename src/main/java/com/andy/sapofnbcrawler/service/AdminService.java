@@ -9,17 +9,20 @@ import java.util.List;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import com.andy.sapofnbcrawler.dto.AdminBillingSummaryDto;
 import com.andy.sapofnbcrawler.dto.AdminCustomerSummaryDto;
 import com.andy.sapofnbcrawler.dto.AdminOrderSummaryDto;
 import com.andy.sapofnbcrawler.dto.AdminOrderSummaryDto.DailyOrderStat;
 import com.andy.sapofnbcrawler.dto.CustomerInfoDto;
 import com.andy.sapofnbcrawler.dto.MemberOrderDto;
 import com.andy.sapofnbcrawler.dto.OrderDto;
+import com.andy.sapofnbcrawler.dto.AdminBillingSummaryDto.RevenueStat;
 import com.andy.sapofnbcrawler.dto.OrderSummaryDto.DailyOrderSummary;
 import com.andy.sapofnbcrawler.entity.CustomerInfo;
 import com.andy.sapofnbcrawler.entity.Order;
 import com.andy.sapofnbcrawler.exception.ResourceNotFoundException;
 import com.andy.sapofnbcrawler.mapper.OrderMapper;
+import com.andy.sapofnbcrawler.object.BillingSummary;
 import com.andy.sapofnbcrawler.object.CustomerRank;
 import com.andy.sapofnbcrawler.object.DailySummaryOrders;
 import com.andy.sapofnbcrawler.repository.ICustomerRepository;
@@ -43,7 +46,7 @@ public class AdminService {
         		order -> {
         			DailyOrderStat dailyOrder = new AdminOrderSummaryDto(). new DailyOrderStat();
         			dailyOrder.setDate(order.getOrderDate());
-        			dailyOrder.setOrderCount(order.getTotalDishes());
+        			dailyOrder.setOrderCount(order.getOrderCount());
         			dailyOrder.setTotalAmount(order.getSumPrice());
         			return dailyOrder;
         		}
@@ -75,12 +78,26 @@ public class AdminService {
         return customerSummaryDto;
     }
 
-//    public List<OrderDto> summaryOrders(OrderDto orderDto) {
-//
-//        List<Order> orderList = orderRepository.getOrdersFromDateToToDate(orderDto)
-//                .orElseThrow(() -> new ResourceNotFoundException("Danh sách đơn đặt hàng", "ngày đặt ",
-//                        String.format(" từ %s đến %s", orderDto.getFromDate(), orderDto.getToDate())));
-//
-//        return OrderMapper.mappingAdminSummaryOrder(orderList, new ArrayList<OrderDto>());
-//    }
+    public AdminBillingSummaryDto summaryBilling() {
+    	AdminBillingSummaryDto billingSummary = new AdminBillingSummaryDto();
+    	
+    	BillingSummary summaryBilling = orderRepository.summaryBilling(new Date());
+    	List<Order> orders = orderRepository.getUnpaidOrder();
+    	List<DailySummaryOrders> dailySummaryOrders = orderRepository.summaryDailyOrders();
+
+    	List<OrderDto> orderDtos = orders.stream().map(order -> OrderMapper.mappingToOrderDto(order, new OrderDto())).toList();
+
+    	List<RevenueStat> revenueStats = dailySummaryOrders.stream().map(order -> {
+    		RevenueStat dailyStat = new AdminBillingSummaryDto().new RevenueStat();
+    		dailyStat.setDate(order.getOrderDate());
+    		dailyStat.setOrderCount(order.getOrderCount());
+    		dailyStat.setRevenue(order.getSumPrice());
+    		return dailyStat;
+    	}).toList();
+    	BeanUtils.copyProperties(summaryBilling, billingSummary);
+    	billingSummary.setUnpaidOrders(orderDtos);
+    	billingSummary.setRevenueStats(revenueStats);
+    	
+        return billingSummary;
+    }
 }
