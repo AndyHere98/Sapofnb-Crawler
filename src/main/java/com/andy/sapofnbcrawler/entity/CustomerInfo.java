@@ -41,27 +41,25 @@ public class CustomerInfo {
 	private String customerPhone;
 	@Column(nullable = false, length = 100)
 	private String customerEmail;
-	@Column(nullable = false, unique = true)
+	@Column(nullable = false, unique = true, length = 30)
 	private String ipAddress;
 	@Column(name = "host_name")
 	private String pcHostName;
-	
+
 	@Column(name = "is_admin", length = 1, nullable = false, columnDefinition = "NUMBER(1,0) DEFAULT 0")
 	private int isAdmin;
 
-    @Column(updatable = false, nullable = false)
-    private LocalDateTime createdDate;
-    
-    @Column(insertable = false)
-    @LastModifiedDate()
-    private LocalDateTime updateDate;
-    
-    @Column(length = 50, updatable = false, nullable = false)
-    private String createdBy;
-    
-    @Column(length = 50)
-    @LastModifiedBy
-    private String updatedBy;
+	@Column(updatable = false, nullable = false)
+	private LocalDateTime createdDate;
+
+	@Column(insertable = false)
+	private LocalDateTime updatedDate;
+
+	@Column(length = 50, updatable = false, nullable = false)
+	private String createdBy;
+
+	@Column(length = 50)
+	private String updatedBy;
 
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "customerId", orphanRemoval = true)
 	@JsonManagedReference

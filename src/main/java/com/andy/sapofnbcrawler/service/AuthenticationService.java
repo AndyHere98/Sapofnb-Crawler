@@ -3,6 +3,7 @@ package com.andy.sapofnbcrawler.service;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import com.andy.sapofnbcrawler.dto.CustomerInfoDto;
@@ -43,10 +44,11 @@ public class AuthenticationService {
 	private CustomerInfoDto mapToCustomerInfoDto(CustomerInfo customerInfo) {
 		CustomerInfoDto customerInfoDto = new CustomerInfoDto();
 
-		customerInfoDto.setIpAddress(customerInfo.getIpAddress());
-		customerInfoDto.setCustomerName(customerInfo.getCustomerName());
-		customerInfoDto.setCustomerPhone(customerInfo.getCustomerPhone());
-		customerInfoDto.setCustomerEmail(customerInfo.getCustomerEmail());
+		// customerInfoDto.setIpAddress(customerInfo.getIpAddress());
+		// customerInfoDto.setCustomerName(customerInfo.getCustomerName());
+		// customerInfoDto.setCustomerPhone(customerInfo.getCustomerPhone());
+		// customerInfoDto.setCustomerEmail(customerInfo.getCustomerEmail());
+		BeanUtils.copyProperties(customerInfo, customerInfoDto);
 
 		return customerInfoDto;
 	}

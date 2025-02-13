@@ -31,6 +31,7 @@ import com.andy.sapofnbcrawler.object.OrderSummary;
 import com.andy.sapofnbcrawler.repository.ICustomerRepository;
 import com.andy.sapofnbcrawler.repository.IOrderRepository;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -40,6 +41,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AdminService {
 
+	private final HttpServletRequest httpRequest;
 	private final IOrderRepository orderRepository;
 	private final ICustomerRepository customerRepository;
 
@@ -117,9 +119,11 @@ public class AdminService {
 	public boolean updateCustomerByAdmin(String ipAddress, CustomerInfoDto customerInfoDto) {
 		CustomerInfo customerInfo = customerRepository.findCustomerByIpAddress(ipAddress).orElseThrow(
 				() -> new ResourceNotFoundException("Thông tin khách hàng", "Địa chỉ IP", ipAddress));
-		
-		customerRepository.updateCustomerByIpAddress(ipAddress, customerInfoDto);
-		
+
+		CustomerInfo adminInfo = customerRepository.findCustomerByIpAddress(httpRequest.getRemoteAddr()).orElseThrow(
+				() -> new ResourceNotFoundException("Thông tin người quản lý", "Địa chỉ IP", ipAddress));
+		customerRepository.updateCustomerByIpAddress(ipAddress, customerInfoDto, adminInfo);
+
 		return true;
 	}
 
@@ -128,7 +132,8 @@ public class AdminService {
 				.orElseThrow(() -> new ResourceNotFoundException("Đơn đặt hàng", "mã đơn", orderSku));
 
 		if (order.getIsPaid() != 0) {
-			throw new OrderCompletedException("Đơn hàng " + orderSku + " đã thanh toán hoàn tất. Không thể tiếp tục chỉnh sửa!");
+			throw new OrderCompletedException(
+					"Đơn hàng " + orderSku + " đã thanh toán hoàn tất. Không thể tiếp tục chỉnh sửa!");
 		}
 		orderRepository.confirmPaymentOrder(order.getId());
 		return true;
@@ -139,7 +144,8 @@ public class AdminService {
 				.orElseThrow(() -> new ResourceNotFoundException("Đơn đặt hàng", "mã đơn", orderSku));
 
 		if (!order.getOrderStatus().equalsIgnoreCase(SapoConstants.ORDER_STATUS_PENDING)) {
-			throw new OrderCompletedException("Đơn hàng " + orderSku + " đã thanh toán hoàn tất. Không thể tiếp tục chỉnh sửa!");
+			throw new OrderCompletedException(
+					"Đơn hàng " + orderSku + " đã thanh toán hoàn tất. Không thể tiếp tục chỉnh sửa!");
 		}
 		orderRepository.completeOrder(order.getId());
 		return true;

@@ -22,10 +22,12 @@ import lombok.NoArgsConstructor;
 public class CustomerInfoDto {
 	@Schema(description = "Địa chỉ IP thiết bị")
 	private String ipAddress;
-	
+
 	@Schema(description = "Tên thiết bị")
 	private String pcHostName;
 
+	@Schema(description = "Account này có phải admin?")
+	private int isAdmin;
 
 	@Schema(description = "Tên khách hàng")
 	@NotEmpty(message = "Tên khách hàng không được để trống")
@@ -40,7 +42,7 @@ public class CustomerInfoDto {
 	@Schema(description = "Thông tin email khách hàng")
 	@NotEmpty(message = "Email khách hàng không được để trống")
 	private String customerEmail;
-	
+
 	@Schema(description = "Công nợ hiện tại dựa trên những đơn chưa thanh toán")
 	private BigDecimal balance;
 
@@ -49,7 +51,7 @@ public class CustomerInfoDto {
 
 	@Schema(description = "Tổng số phần đã đặt")
 	private int totalDishes;
-	
+
 	@Schema(description = "Tổng tiền đã chi")
 	private BigDecimal totalSpending;
 }

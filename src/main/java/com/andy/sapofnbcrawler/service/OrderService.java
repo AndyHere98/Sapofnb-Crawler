@@ -3,6 +3,7 @@ package com.andy.sapofnbcrawler.service;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -180,8 +181,24 @@ public class OrderService implements IOrderService {
 		CustomerInfo customerInfo = customerRepository.findCustomerByIpAddress(webRequest.getRemoteAddr())
 				.orElseThrow(() -> new ResourceNotFoundException("Dữ liệu khách hàng " + request.getCustomerName(), "", null));
 
-		order.setOrderStatus(SapoConstants.ORDER_STATUS_PENDING);
 		order.setCustomerId(customerInfo);
+		Optional<CustomerInfo> customerCheck = customerRepository.findCustomerByNameAndPhoneAndEmail(request);
+		if (!customerCheck.isPresent()) {
+			SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmss");
+			CustomerInfo newCustomer = new CustomerInfo();
+			newCustomer.setCustomerName(request.getCustomerName());
+			newCustomer.setCustomerPhone(request.getCustomerPhone());
+			newCustomer.setCustomerEmail(request.getCustomerEmail());
+			newCustomer.setIpAddress(sdf.format(new Date()) + "-AdminCreated");
+			newCustomer.setPcHostName("NONE");
+			newCustomer.setCreatedBy(customerInfo.getCustomerName());
+			newCustomer.setCreatedDate(LocalDateTime.now());
+
+			newCustomer = customerRepository.saveAndFlush(newCustomer);
+			order.setCustomerId(newCustomer);
+		}
+
+		order.setOrderStatus(SapoConstants.ORDER_STATUS_PENDING);
 		order.setTotalDishes(totalDishes);
 
 		orderRepository.save(order);
