@@ -7,6 +7,8 @@ import java.util.List;
 import org.hibernate.annotations.Nationalized;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
@@ -39,16 +41,27 @@ public class CustomerInfo {
 	private String customerPhone;
 	@Column(nullable = false, length = 100)
 	private String customerEmail;
-	@Column(nullable = false)
+	@Column(nullable = false, unique = true)
 	private String ipAddress;
 	@Column(name = "host_name")
 	private String pcHostName;
+	
+	@Column(name = "is_admin", length = 1, nullable = false, columnDefinition = "NUMBER(1,0) DEFAULT 0")
+	private int isAdmin;
 
-	@CreatedDate
-	private LocalDateTime createdDate;
-
-	@CreatedBy
-	private String createdBy;
+    @Column(updatable = false, nullable = false)
+    private LocalDateTime createdDate;
+    
+    @Column(insertable = false)
+    @LastModifiedDate()
+    private LocalDateTime updateDate;
+    
+    @Column(length = 50, updatable = false, nullable = false)
+    private String createdBy;
+    
+    @Column(length = 50)
+    @LastModifiedBy
+    private String updatedBy;
 
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "customerId", orphanRemoval = true)
 	@JsonManagedReference

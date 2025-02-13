@@ -148,4 +148,18 @@ public interface IOrderRepository extends JpaRepository<Order, Long> {
             + "o.orderStatus = :status "
             + "where o.id = :id")
     void updateOrderStatus(@Param("id") Long id, @Param("status") String status);
+    
+    @Modifying
+    @Transactional
+    @Query(value = "update Order o set "
+            + "o.isPaid = 1 "
+            + "where o.id = :id")
+	void confirmPaymentOrder(@Param("id") Long id);
+
+    @Modifying
+    @Transactional
+    @Query(value = "update Order o set "
+            + "o.orderStatus = 'S' "
+            + "where o.id = :id")
+	void completeOrder(@Param("id") Long id);
 }

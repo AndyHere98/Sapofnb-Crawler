@@ -73,6 +73,9 @@ public class OrderDto {
 	@Schema(description = "Đơn hàng đến ngày")
 	private String toDate;
 
+	@Schema(description = "Tình trạng thanh toán của đơn hàng")
+	private int isPaid;
+
 	@Schema(description = "Trạng thái đơn hàng")
 	@JsonProperty("status")
 	private String orderStatus;

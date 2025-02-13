@@ -9,6 +9,7 @@ import java.util.List;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import com.andy.sapofnbcrawler.common.SapoConstants;
 import com.andy.sapofnbcrawler.dto.AdminBillingSummaryDto;
 import com.andy.sapofnbcrawler.dto.AdminCustomerSummaryDto;
 import com.andy.sapofnbcrawler.dto.AdminOrderSummaryDto;
@@ -20,6 +21,7 @@ import com.andy.sapofnbcrawler.dto.AdminBillingSummaryDto.RevenueStat;
 import com.andy.sapofnbcrawler.dto.OrderSummaryDto.DailyOrderSummary;
 import com.andy.sapofnbcrawler.entity.CustomerInfo;
 import com.andy.sapofnbcrawler.entity.Order;
+import com.andy.sapofnbcrawler.exception.OrderCompletedException;
 import com.andy.sapofnbcrawler.exception.ResourceNotFoundException;
 import com.andy.sapofnbcrawler.mapper.OrderMapper;
 import com.andy.sapofnbcrawler.object.BillingSummary;
@@ -29,6 +31,9 @@ import com.andy.sapofnbcrawler.object.OrderSummary;
 import com.andy.sapofnbcrawler.repository.ICustomerRepository;
 import com.andy.sapofnbcrawler.repository.IOrderRepository;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -107,5 +112,36 @@ public class AdminService {
 		billingSummary.setRevenueStats(revenueStats);
 
 		return billingSummary;
+	}
+
+	public boolean updateCustomerByAdmin(String ipAddress, CustomerInfoDto customerInfoDto) {
+		CustomerInfo customerInfo = customerRepository.findCustomerByIpAddress(ipAddress).orElseThrow(
+				() -> new ResourceNotFoundException("Thông tin khách hàng", "Địa chỉ IP", ipAddress));
+		
+		customerRepository.updateCustomerByIpAddress(ipAddress, customerInfoDto);
+		
+		return true;
+	}
+
+	public boolean confirmPaymentOrder(String orderSku) {
+		Order order = orderRepository.findByOrderCode(orderSku)
+				.orElseThrow(() -> new ResourceNotFoundException("Đơn đặt hàng", "mã đơn", orderSku));
+
+		if (order.getIsPaid() != 0) {
+			throw new OrderCompletedException("Đơn hàng " + orderSku + " đã thanh toán hoàn tất. Không thể tiếp tục chỉnh sửa!");
+		}
+		orderRepository.confirmPaymentOrder(order.getId());
+		return true;
+	}
+
+	public boolean completeOrder(String orderSku) {
+		Order order = orderRepository.findByOrderCode(orderSku)
+				.orElseThrow(() -> new ResourceNotFoundException("Đơn đặt hàng", "mã đơn", orderSku));
+
+		if (!order.getOrderStatus().equalsIgnoreCase(SapoConstants.ORDER_STATUS_PENDING)) {
+			throw new OrderCompletedException("Đơn hàng " + orderSku + " đã thanh toán hoàn tất. Không thể tiếp tục chỉnh sửa!");
+		}
+		orderRepository.completeOrder(order.getId());
+		return true;
 	}
 }
