@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 public class BillingSummary {
-	private BigDecimal totalRevenue;
-	private BigDecimal dailyRevenue;
-	private BigDecimal monthlyRevenue;
-	private BigDecimal yearlyRevenue;
+	private BigDecimal totalRevenue = BigDecimal.ZERO;
+	private BigDecimal dailyRevenue = BigDecimal.ZERO;
+	private BigDecimal monthlyRevenue = BigDecimal.ZERO;
+	private BigDecimal yearlyRevenue = BigDecimal.ZERO;
 }
