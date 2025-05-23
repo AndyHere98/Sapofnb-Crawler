@@ -1,7 +1,5 @@
 package com.andy.sapofnbcrawler.controller.admin;
 
-import java.util.List;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +16,6 @@ import com.andy.sapofnbcrawler.dto.AdminCustomerSummaryDto;
 import com.andy.sapofnbcrawler.dto.AdminOrderSummaryDto;
 import com.andy.sapofnbcrawler.dto.CustomerInfoDto;
 import com.andy.sapofnbcrawler.dto.ErrorResponseDto;
-import com.andy.sapofnbcrawler.dto.MemberOrderDto;
-import com.andy.sapofnbcrawler.dto.OrderDto;
 import com.andy.sapofnbcrawler.dto.ResponseDto;
 import com.andy.sapofnbcrawler.service.AdminService;
 
@@ -31,7 +27,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 
@@ -133,6 +128,30 @@ public class SapoAdminController {
 		} else {
 			commonResponse.setStatus(HttpStatus.EXPECTATION_FAILED);
 			commonResponse.setMessage("Thông tin khách hàng chỉnh sửa thất bại. Hãy check lại với Admin");
+			return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(commonResponse);
+		}
+	}
+	
+	
+	@Operation(summary = "Admin cập nhật thông tin công nợ cho member")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "Yêu cầu được thực hiện thành công"),
+			@ApiResponse(responseCode = "500", description = "Lấy thông tin đơn hàng không thành công, liên hệ với dev", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
+	})
+	@PutMapping("/customers/orders/{ipAdress}")
+	public ResponseEntity<ResponseDto> updateClearDeptForCustomerByAdmin(@NotBlank(message = "Địa chỉ ip") @Size(max = 36) @PathVariable("ipAdress") String ipAddress,
+			@Valid @RequestBody CustomerInfoDto request) {
+		ResponseDto commonResponse = new ResponseDto();
+
+		boolean isUpdated = adminService.updateClearDeptForCustomerByAdmin(ipAddress, request);
+
+		if (isUpdated) {
+			commonResponse.setStatus(HttpStatus.OK);
+			commonResponse.setMessage("Xoá nợ thành công =)))");
+			return ResponseEntity.ok(commonResponse);
+		} else {
+			commonResponse.setStatus(HttpStatus.EXPECTATION_FAILED);
+			commonResponse.setMessage("Xoá nợ thất bại. Hãy check lại với Admin");
 			return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(commonResponse);
 		}
 	}

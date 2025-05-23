@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration>
+<configuration scan="true" scanPeriod="30 seconds">
+	<appender name="STDOUT"
+		class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS}[%-5level] %logger{36} : %msg%n</pattern>
+		</encoder>
+	</appender>
+	<appender name="ROLLING"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>D:\TsbLunchOrder\backend\logs\Sapofnb-UAT.log</file>
+		<rollingPolicy
+			class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>D:\TsbLunchOrder\backend\logs\Sapofnb-UAT-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+			<timeBasedFileNamingAndTriggeringPolicy
+				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxhistory>10</maxhistory>
+				<maxFileSize>20MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+		</rollingPolicy>
+		<encoder>
+			<pattern>[%-5level] %d{HH:mm:ss.SSS} %logger{36} - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+  
+	<logger name="org.springframework" level="DEBUG" />
+	<logger name="org.thymeleaf" level="INFO" />
+
+	<logger name="org.mybatis.spring" level="DEBUG" />
+	<logger name="springfox.documentation" level="DEBUG" />
+
+	<logger name="org.jasypt" level="DEBUG" />
+	<logger name="com.ulisesbocchio.jasyptspringboot" level="DEBUG" />
+	
+	<!-- 	Devs log -->
+	<logger name="jdbc" 				level="ON" 		/>
+	<logger name="jdbc.sqlonly" 		level="DEBUG" 	/>
+	<logger name="jdbc.sqltiming" 		level="DEBUG" 	/>
+	<logger name="jdbc.audit" 			level="DEBUG" 	/>
+	<logger name="jdbc.resultset" 		level="DEBUG" 	/>
+	<logger name="jdbc.resultsettable" 	level="DEBUG" 	/>
+	<logger name="jdbc.connection" 		level="OFF" 	/>
+	
+	<!-- 	Release log -->
+<!-- 	<logger name="jdbc" level="OFF" /> -->
+<!-- 	<logger name="jdbc.sqlonly" level="ERROR" /> -->
+<!-- 	<logger name="jdbc.sqltiming" level="OFF" /> -->
+<!-- 	<logger name="jdbc.audit" level="OFF" /> -->
+<!-- 	<logger name="jdbc.resultset" level="OFF" /> -->
+<!-- 	<logger name="jdbc.resultsettable" level="ERROR" /> -->
+<!-- 	<logger name="jdbc.connection" level="OFF" /> -->
+	
+	<root level="DEBUG">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="ROLLING"/>
+	</root>
+
+	<!-- <typeAliases></typeAliases> -->
+</configuration>

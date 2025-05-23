@@ -26,11 +26,19 @@ public class AuthenticationService {
 			throw new RuntimeException(String.format("There is existed user with this ip %s. Please contact admin",
 					customerInfoDto.getIpAddress()));
 		}
-		CustomerInfo customer = mapToCustomerInfo(customerInfoDto);
-		customer.setCreatedBy(customer.getPcHostName());
-		customer.setCreatedDate(LocalDateTime.now());
-		customerRepository.save(customer);
-
+		Optional<CustomerInfo> customerByData = customerRepository.findCustomerByCustomerInformation(customerInfoDto);
+		
+		CustomerInfo customer = new CustomerInfo();
+		if (!customerByData.isPresent()) {
+			customer = mapToCustomerInfo(customerInfoDto);
+			customer.setCreatedBy(customer.getPcHostName());
+			customer.setCreatedDate(LocalDateTime.now());
+			customerRepository.save(customer);
+		} else {
+			customer = customerByData.get();
+			customerRepository.updateCustomerInfoById(customerInfoDto, customer.getId());
+		}
+		
 		return true;
 	}
 

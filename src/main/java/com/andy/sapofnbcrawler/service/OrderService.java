@@ -304,8 +304,12 @@ public class OrderService implements IOrderService {
 		orderDto.setCustomerName(customerName);
 		orderDto.setFromDate(fromDate);
 		orderDto.setToDate(toDate);
+		
+		String customerRemoteAddress = webRequest.getRemoteAddr();
+		CustomerInfo customer = customerRepository.findCustomerByIpAddress(customerRemoteAddress)
+				.orElseThrow(() -> new ResourceNotFoundException("Thông tin khách hàng", "địa chỉ IP", customerRemoteAddress));
 
-		List<Order> orderList = orderRepository.getOrdersFromDateToToDate(orderDto)
+		List<Order> orderList = orderRepository.getOrdersFromDateToToDate(orderDto, customer)
 				.orElseThrow(() -> new RuntimeException("Không có đơn hàng được tìm thấy"));
 		List<OrderDto> orderDtoList = orderList.stream()
 				.map(order -> OrderMapper.mappingToOrderDto(order, new OrderDto())).toList();

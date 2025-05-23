@@ -27,7 +27,9 @@ public interface IOrderRepository extends JpaRepository<Order, Long> {
         // "where FORMATDATETIME(o.orderDate, 'yyyy-MM-dd') =
         // FORMATDATETIME(PARSEDATETIME(:today, 'yyyy-MM-dd'), 'yyyy-MM-dd')")
         @Query(value = "select o from Order o "
-                        + "where o.orderDate = :orderDate")
+                        + "where o.orderDate = :orderDate "
+                        + " and o.orderStatus <> 'C'"
+        		)
         Optional<List<Order>> getOrderByOrderDate(@Param("orderDate") java.sql.Date orderDate);
 
         // @Query(value = "select o from Order o " +
@@ -39,32 +41,6 @@ public interface IOrderRepository extends JpaRepository<Order, Long> {
         // + "order by o.customerName"
         )
         Optional<List<Order>> getOrdersByOrderDateOrderByCustomerName(@Param("today") String today);
-
-        // @Query(value = "select o from Order o where o.customerName =
-        // :#{#request.customerName}" +
-        // " and FORMATDATETIME(o.orderDate, 'yyyy-MM-dd') =
-        // FORMATDATETIME(current_date, 'yyyy-MM-dd')"
-        // )
-        // @Query(value = "select o from Order o where o.customerName =
-        // :#{#request.customerName}" +
-        // " and TO_CHAR(o.orderDate, 'yyyy-MM-dd') = TO_CHAR(current_date,
-        // 'yyyy-MM-dd')"
-        // )
-        // Optional<Order> getOrderByOrderDateOrderByCustomerName(@Param("request")
-        // MemberOrderRequest request);
-
-        // @Query(value = "select o from Order o where FORMATDATETIME(o.orderDate,
-        // 'yyyy-MM-dd') >= FORMATDATETIME(PARSEDATETIME(:fromDate, 'yyyy-MM-dd'),
-        // 'yyyy-MM-dd')"
-        // + " and o.customerName like '%' || :customerName || '%'"
-        // + " order by o.orderDate asc, o.customerName asc")
-        // @Query(value = "select o from Order o where TO_CHAR(o.orderDate,
-        // 'yyyy-MM-dd') >= TO_CHAR(TO_DATE(:fromDate, 'yyyy-MM-dd'), 'yyyy-MM-dd')"
-        //// + " and o.customerName like '%' || :customerName || '%'"
-        // + " order by o.orderDate asc")
-        // Optional<List<Order>>
-        // getOrderByOrderDateAndCustomerNameOrderByOrderDateAsc(@Param("customerName")
-        // String customerName,@Param("fromDate") String fromDate);
 
         @Query(value = "select o from Order o where o.orderSku = :orderSku")
         Optional<Order> findByOrderCode(@Param("orderSku") String orderSku);
@@ -79,9 +55,9 @@ public interface IOrderRepository extends JpaRepository<Order, Long> {
         @Query(value = "select o from Order o " +
                         "where o.orderDate >= TO_DATE(:#{#orderDto.fromDate}, 'yyyy-MM-dd')"
                         + " and o.orderDate <= TO_DATE(:#{#orderDto.toDate}, 'yyyy-MM-dd')"
-        // + " and o.customerName like '%' || :#{#orderDto.customerName} || '%'"
+                        + " and o.customerId = :customer"
         )
-        Optional<List<Order>> getOrdersFromDateToToDate(@Param("orderDto") OrderDto orderDto);
+        Optional<List<Order>> getOrdersFromDateToToDate(@Param("orderDto") OrderDto orderDto, @Param("customer") CustomerInfo customer);
 
         @Transactional
         @Modifying
@@ -98,6 +74,7 @@ public interface IOrderRepository extends JpaRepository<Order, Long> {
 
         @Query(value = "select o from Order o"
                         + " where to_char(o.orderDate, 'yyyy') = :year"
+                        + " and o.orderStatus <> 'C'"
                         + " order by o.orderDate")
         List<Order> getOrdersInYear(@Param("year") String year);
 
@@ -113,12 +90,12 @@ public interface IOrderRepository extends JpaRepository<Order, Long> {
         @Query(value = "select sum(o.totalPrice) as totalDebt from Order o"
                         + " where o.customerId = :customer"
                         + " and o.isPaid = 0"
-                        + " and o.orderStatus = 'P'")
+                        + " and o.orderStatus <> 'C'")
         BigDecimal getTotalDebtOfCustomer(@Param("customer") CustomerInfo customer);
 
         @Query(value = "select o from Order o"
                         + " where o.isPaid = 0"
-                        + " and o.orderStatus = 'P'")
+                        + " and o.orderStatus <> 'C'")
         List<Order> getUnpaidOrder();
 
         @Query(name = "summaryBilling", nativeQuery = true)
@@ -147,4 +124,12 @@ public interface IOrderRepository extends JpaRepository<Order, Long> {
                         + "o.orderStatus = 'S' "
                         + "where o.id = :id")
         void completeOrder(@Param("id") Long id);
+
+        @Modifying
+        @Transactional
+        @Query(value = "update Order o set "
+                + "o.isPaid = 1 "
+                + "where o.customerId = :customer"
+                + " and o.orderStatus <> 'C'")
+		void clearDeptForCustomer(@Param("customer") CustomerInfo customerInfo);
 }

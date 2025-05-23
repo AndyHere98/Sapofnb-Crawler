@@ -1,0 +1,17 @@
+spring.application.name: Sapofnb-Crawler
+#---
+spring.profiles.default: dev
+spring.profiles.include: dev, common
+#---
+#spring.profiles.default: prod
+#spring.profiles.include: prod, common
+
+spring.profiles.active: dev
+
+springdoc.api-docs.path: /api-docs
+springdoc.swagger-ui.path: /api/docs
+
+#spring:profiles: prod
+#spring:profiles:include: prod,common
+
+server.port: 8686

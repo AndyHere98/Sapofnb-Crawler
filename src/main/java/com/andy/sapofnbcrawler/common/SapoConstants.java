@@ -2,8 +2,8 @@ package com.andy.sapofnbcrawler.common;
 
 public class SapoConstants {
 
-    public final static String URI = "https://menu.sapofnb.vn/api";
-    public final static String COOKIE = "store=bfe11e5ff59711eb80610a75247ce32e";
+    public final static String URI = "https://alo.sapofnb.vn/api";
+    public final static String COOKIE = "store=46ee3fdb173b4b40b05a2abf2c0a89a0";
 
     public final static String APP_MODE_PRODUCTION = "PROD";
     public final static String APP_MODE_DEVELOPMENT = "DEV";

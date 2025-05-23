@@ -11,7 +11,6 @@ import com.andy.sapofnbcrawler.object.BillingSummary;
 import com.andy.sapofnbcrawler.object.CustomerRank;
 import com.andy.sapofnbcrawler.object.DailySummaryOrders;
 import com.andy.sapofnbcrawler.object.OrderSummary;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -31,7 +30,6 @@ import jakarta.persistence.SqlResultSetMapping;
 import jakarta.persistence.SqlResultSetMappings;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -54,7 +52,8 @@ import lombok.Setter;
 				+ "from member_order o "
 				+ "join customer_info c on (c.id = o.customer_id) "
 				+ "where o.order_date >= :start "
-				+ "and o.order_date <= :end "
+				+ " and o.order_date <= :end "
+				+ " and o.order_status <> 'C'"
 				+ "group by "
 				+ "(c.customer_name "
 				+ ", c.customer_phone "
@@ -65,6 +64,7 @@ import lombok.Setter;
 				+ ", NVL(SUM(mo.total_price), 0) AS sumPrice"
 				+ ", count(mo.id) AS orderCount "
 				+ "from MEMBER_ORDER mo "
+				+ " where mo.order_status <> 'C'"
 				+ "GROUP BY (to_char(MO.ORDER_DATE, 'dd/MM/yyyy'))", resultSetMapping = "SummaryDailyOrders"),
 		@NamedNativeQuery(name = "getRankingCustomerAllTime", query = "select "
 				+ "c.customer_name as customerName "
@@ -75,16 +75,17 @@ import lombok.Setter;
 				+ ", count(o.id) as totalOrders "
 				+ "from member_order o "
 				+ "join customer_info c on (c.id = o.customer_id) "
+				+ " where o.order_status <> 'C'"
 				+ "group by "
 				+ "(c.customer_name "
 				+ ", c.customer_phone "
 				+ ", c.customer_email) "
 				+ "order by totalSpending desc", resultSetMapping = "CustomerRank"),
 		@NamedNativeQuery(name = "summaryBilling", query = "select "
-				+ "(select NVL(SUM(total_price), 0) from MEMBER_ORDER) AS totalRevenue "
-				+ ", (select NVL(SUM(total_price), 0) from MEMBER_ORDER where to_char(order_date, 'dd/MM/yyyy') = to_char(:date, 'dd/MM/yyyy')) AS dailyRevenue "
-				+ ", (select NVL(SUM(total_price), 0) from MEMBER_ORDER where to_char(order_date, 'MM/yyyy') = to_char(:date, 'MM/yyyy')) AS monthlyRevenue "
-				+ ", (select NVL(SUM(total_price), 0) from MEMBER_ORDER where to_char(order_date, 'yyyy') = to_char(:date, 'yyyy')) AS yearlyRevenue "
+				+ "(select NVL(SUM(total_price), 0) from MEMBER_ORDER where order_status <> 'C') AS totalRevenue "
+				+ ", (select NVL(SUM(total_price), 0) from MEMBER_ORDER where to_char(order_date, 'dd/MM/yyyy') = to_char(:date, 'dd/MM/yyyy') and order_status <> 'C') AS dailyRevenue "
+				+ ", (select NVL(SUM(total_price), 0) from MEMBER_ORDER where to_char(order_date, 'MM/yyyy') = to_char(:date, 'MM/yyyy') and order_status <> 'C') AS monthlyRevenue "
+				+ ", (select NVL(SUM(total_price), 0) from MEMBER_ORDER where to_char(order_date, 'yyyy') = to_char(:date, 'yyyy') and order_status <> 'C') AS yearlyRevenue "
 				+ "from dual", resultSetMapping = "SummaryBilling"),
 		@NamedNativeQuery(name = "summaryOrders", query = "select "
 				+ "(select count(*) from MEMBER_ORDER) AS totalOrders "
@@ -121,7 +122,6 @@ import lombok.Setter;
 				@ColumnResult(name = "cancelledOrders", type = Integer.class),
 		})),
 })
-@EqualsAndHashCode
 public class Order extends BaseEntity {
 
 	@Id

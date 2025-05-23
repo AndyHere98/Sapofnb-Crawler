@@ -13,10 +13,6 @@ import com.andy.sapofnbcrawler.dto.CustomerInfoDto;
 import com.andy.sapofnbcrawler.dto.OrderDto;
 import com.andy.sapofnbcrawler.entity.CustomerInfo;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-
 @Repository
 public interface ICustomerRepository extends JpaRepository<CustomerInfo, Long> {
 
@@ -40,5 +36,21 @@ public interface ICustomerRepository extends JpaRepository<CustomerInfo, Long> {
 			+ " and c.customerPhone = :#{#orderDto.customerPhone}"
 			+ " and c.customerEmail = :#{#orderDto.customerEmail}")
 	Optional<CustomerInfo> findCustomerByNameAndPhoneAndEmail(@Param("orderDto") OrderDto orderDto);
+
+	@Query(value = "Select c from CustomerInfo c "
+			+ " where c.customerName = :#{#customerInfoDto.customerName}"
+			+ " and c.customerPhone = :#{#customerInfoDto.customerPhone}"
+			+ " and c.customerEmail = :#{#customerInfoDto.customerEmail}")
+	Optional<CustomerInfo> findCustomerByCustomerInformation(@Param("customerInfoDto") CustomerInfoDto customerInfoDto);
+	
+	@Modifying
+	@Transactional
+	@Query(value = "update CustomerInfo c set "
+			+ " c.ipAddress = :#{#customerInfoDto.ipAddress}"
+			+ ", c.pcHostName = :#{#customerInfoDto.pcHostName}"
+			+ ", c.updatedDate = SYSTIMESTAMP"
+			+ ", c.updatedBy = :#{#customerInfoDto.pcHostName}"
+			+ " where c.id = :id")
+	void updateCustomerInfoById(@Param("customerInfoDto") CustomerInfoDto customerInfoDto, @Param("id") Long id);
 
 }

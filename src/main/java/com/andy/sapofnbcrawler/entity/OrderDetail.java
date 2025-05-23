@@ -5,8 +5,6 @@ import java.math.BigDecimal;
 import org.hibernate.annotations.Nationalized;
 
 import com.andy.sapofnbcrawler.object.DailySummaryOrders;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.ColumnResult;
@@ -42,6 +40,7 @@ import lombok.Setter;
 		+ "from order_detail o "
 		+ "join member_order m on (m.order_sku = o.order_id) "
 		+ "where m.order_date = :orderDate "
+		+ " and m.order_status <> 'C'"
 		+ "group by (o.dish_name, o.unit_price) "
 		+ "order by dishName asc", resultSetMapping = "DailySummaryOrderMapping")
 @SqlResultSetMapping(name = "DailySummaryOrderMapping", classes = @ConstructorResult(targetClass = DailySummaryOrders.class, columns = {

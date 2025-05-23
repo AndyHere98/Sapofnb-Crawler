@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.andy.sapofnbcrawler.dto.CustomerInfoDto;
 import com.andy.sapofnbcrawler.dto.ErrorResponseDto;
 import com.andy.sapofnbcrawler.dto.ResponseDto;
+import com.andy.sapofnbcrawler.exception.ResourceNotFoundException;
 import com.andy.sapofnbcrawler.service.AuthenticationService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -83,19 +84,28 @@ public class SapoAuthenticationController {
     public ResponseEntity<ResponseDto> registerUser(@RequestBody CustomerInfoDto customerInfoDto) {
 		ResponseDto commonResponse = new ResponseDto();
         String remoteIp = request.getRemoteAddr();
-        
-        customerInfoDto.setIpAddress(remoteIp);
-        customerInfoDto.setPcHostName(request.getRemoteHost());
-        boolean isCreated = authenticationService.registerUser(customerInfoDto);
 
-		if (isCreated) {
-			commonResponse.setStatus(HttpStatus.CREATED);
-			commonResponse.setMessage("Đăng ký khách hàng thành công");
-			return ResponseEntity.status(HttpStatus.CREATED).body(commonResponse);
-		} else {
-			commonResponse.setStatus(HttpStatus.EXPECTATION_FAILED);
-			commonResponse.setMessage("Đăng ký thông tin khách hàng của bạn bị lỗi. Xin hãy check lại với Admin");
-			return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(commonResponse);
+        InetAddress inetAddress;
+		try {
+			inetAddress = InetAddress.getByName(remoteIp);
+	        String hostname = inetAddress.getHostName();
+	        customerInfoDto.setIpAddress(remoteIp);
+	        customerInfoDto.setPcHostName(hostname);
+	        boolean isCreated = authenticationService.registerUser(customerInfoDto);
+
+			if (isCreated) {
+				commonResponse.setStatus(HttpStatus.CREATED);
+				commonResponse.setMessage("Đăng ký khách hàng thành công");
+				return ResponseEntity.status(HttpStatus.CREATED).body(commonResponse);
+			} else {
+				commonResponse.setStatus(HttpStatus.EXPECTATION_FAILED);
+				commonResponse.setMessage("Đăng ký thông tin khách hàng của bạn bị lỗi. Xin hãy check lại với Admin");
+				return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(commonResponse);
+			}
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			throw new ResourceNotFoundException("Địa chỉ IP", "IP", remoteIp);
 		}
+        
     }
 }

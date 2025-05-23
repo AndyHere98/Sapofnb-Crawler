@@ -1,8 +1,6 @@
 package com.andy.sapofnbcrawler.service;
 
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -11,14 +9,12 @@ import org.springframework.stereotype.Service;
 
 import com.andy.sapofnbcrawler.common.SapoConstants;
 import com.andy.sapofnbcrawler.dto.AdminBillingSummaryDto;
+import com.andy.sapofnbcrawler.dto.AdminBillingSummaryDto.RevenueStat;
 import com.andy.sapofnbcrawler.dto.AdminCustomerSummaryDto;
 import com.andy.sapofnbcrawler.dto.AdminOrderSummaryDto;
 import com.andy.sapofnbcrawler.dto.AdminOrderSummaryDto.DailyOrderStat;
 import com.andy.sapofnbcrawler.dto.CustomerInfoDto;
-import com.andy.sapofnbcrawler.dto.MemberOrderDto;
 import com.andy.sapofnbcrawler.dto.OrderDto;
-import com.andy.sapofnbcrawler.dto.AdminBillingSummaryDto.RevenueStat;
-import com.andy.sapofnbcrawler.dto.OrderSummaryDto.DailyOrderSummary;
 import com.andy.sapofnbcrawler.entity.CustomerInfo;
 import com.andy.sapofnbcrawler.entity.Order;
 import com.andy.sapofnbcrawler.exception.OrderCompletedException;
@@ -148,6 +144,19 @@ public class AdminService {
 					"Đơn hàng " + orderSku + " đã thanh toán hoàn tất. Không thể tiếp tục chỉnh sửa!");
 		}
 		orderRepository.completeOrder(order.getId());
+		return true;
+	}
+
+	public boolean updateClearDeptForCustomerByAdmin(@NotBlank(message = "Địa chỉ ip") @Size(max = 36) String ipAddress,
+			@Valid CustomerInfoDto request) {
+
+		CustomerInfo customerInfo = customerRepository.findCustomerByIpAddress(ipAddress).orElseThrow(
+				() -> new ResourceNotFoundException("Thông tin khách hàng", "Địa chỉ IP", ipAddress));
+		CustomerInfo adminInfo = customerRepository.findCustomerByIpAddress(httpRequest.getRemoteAddr()).orElseThrow(
+				() -> new ResourceNotFoundException("Thông tin người quản lý", "Địa chỉ IP", ipAddress));
+		
+		orderRepository.clearDeptForCustomer(customerInfo);
+		
 		return true;
 	}
 }
